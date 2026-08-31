@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACHOU+ | Painel Administrativo</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+
+:root{
+    --paper:#FAFAF8;
+    --surface:#FFFFFF;
+    --ink:#15181D;
+    --muted:#6B6F76;
+    --line:rgba(21,24,29,.09);
+    --line-strong:rgba(21,24,29,.22);
+    --accent:#0E7C66;
+    --accent-dark:#0B6553;
+    --urgent:#E2542B;
+    --dark:#14171B;
+    --dark-2:#0E1013;
+    --radius-s:8px;
+    --radius-m:14px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:'Anton',sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.01em;line-height:1;}
+.mono{font-family:'JetBrains Mono',monospace;}
+button, input{font-family:inherit;}
+
+/* HEADER */
+header{
+    background:var(--paper);
+    min-height:66px;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 clamp(16px,5vw,48px);
+    border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:10;
+}
+.logo{font-family:'Anton',sans-serif;font-size:22px;}
+.logo span{color:var(--accent);}
+.logo .tag{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);text-transform:none;letter-spacing:.04em;margin-left:8px;}
+.btn-logout{background:transparent;border:1.5px solid var(--line-strong);padding:9px 16px;border-radius:var(--radius-s);cursor:pointer;font-weight:600;font-size:13.5px;color:var(--ink);}
+.btn-logout:hover{border-color:var(--ink);}
+
+/* LOGIN / DENIED SCREENS */
+.center-screen{
+    min-height:80vh;display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.login-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-top:3px solid var(--accent);
+    border-radius:var(--radius-m);
+    padding:32px 28px;
+    max-width:380px;width:100%;
+}
+.login-card h2{font-size:24px;margin-bottom:6px;}
+.login-card .sub{color:var(--muted);font-size:13px;margin-bottom:22px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;color:#4A4E55;}
+.field input{width:100%;padding:11px 12px;border-radius:var(--radius-s);border:1.5px solid var(--line-strong);background:var(--paper);font-size:14px;color:var(--ink);outline:none;}
+.field input:focus{border-color:var(--accent);}
+.submit-btn{width:100%;background:var(--ink);color:var(--paper);border:none;padding:13px;border-radius:var(--radius-s);font-weight:700;cursor:pointer;margin-top:6px;font-size:14px;}
+.submit-btn:hover{background:var(--dark-2);}
+.error-msg{color:var(--urgent);font-size:12.5px;margin-bottom:10px;display:none;}
+
+/* DASHBOARD */
+.container{width:min(1000px,92%);margin:32px auto;}
+
+.tabs{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:0;}
+.tab-btn{
+    background:none;border:none;cursor:pointer;
+    padding:12px 6px;margin-right:14px;
+    font-weight:700;font-size:14px;color:var(--muted);
+    border-bottom:2.5px solid transparent;
+}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--accent);}
+.tab-btn .count{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    background:var(--paper);border:1px solid var(--line-strong);
+    padding:2px 7px;border-radius:20px;margin-left:6px;
+}
+
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+.row{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:18px 20px;
+    margin-bottom:12px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.row-info h3{font-size:16px;text-transform:none;font-family:'Inter',sans-serif;font-weight:700;margin-bottom:4px;}
+.row-info .meta{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);margin-bottom:6px;}
+.row-info .desc{font-size:13.5px;color:#4A4E55;max-width:520px;}
+
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.row-actions button{
+    border:none;cursor:pointer;padding:9px 14px;border-radius:var(--radius-s);
+    font-weight:700;font-size:12.5px;white-space:nowrap;
+}
+.btn-approve{background:var(--accent);color:#fff;}
+.btn-approve:hover{background:var(--accent-dark);}
+.btn-reject{background:transparent;border:1.5px solid var(--line-strong)!important;color:var(--ink);}
+.btn-reject:hover{border-color:var(--urgent)!important;color:var(--urgent);}
+.btn-wa{background:var(--dark);color:#fff;text-decoration:none;display:inline-block;}
+.btn-wa:hover{background:var(--dark-2);}
+
+.toggle-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#4A4E55;cursor:pointer;}
+.toggle-label input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
+
+.status-tag{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;
+    padding:4px 9px;border-radius:20px;
+}
+.status-novo{background:#FDECE7;color:var(--urgent);}
+.status-atendido{background:#E4F3EF;color:var(--accent-dark);}
+
+.empty{
+    text-align:center;padding:40px 20px;color:var(--muted);
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;
+}
+
+[hidden]{display:none!important;}
+
+@media(max-width:600px){
+    .row{flex-direction:column;align-items:flex-start;}
+    .row-actions{width:100%;}
+}
+
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="center-screen">
+    <div class="login-card">
+        <h2>Admin</h2>
+        <p class="sub">Painel administrativo do ACHOU+.</p>
+        <form id="adminLoginForm" onsubmit="return handleAdminLogin(event)">
+            <div class="field"><label>E-mail</label><input id="adminEmail" type="email" required></div>
+            <div class="field"><label>Senha</label><input id="adminSenha" type="password" required></div>
+            <p class="error-msg" id="adminLoginError"></p>
+            <button class="submit-btn" type="submit">Entrar</button>
+        </form>
+    </div>
+</div>
+
+<div id="deniedScreen" class="center-screen" hidden>
+    <div class="login-card">
+        <h2>Sem acesso</h2>
+        <p class="sub">Essa conta não tem permissão de administrador.</p>
+        <button class="submit-btn" onclick="auth.signOut()">Sair</button>
+    </div>
+</div>
+
+<div id="dashboard" hidden>
+
+    <header>
+        <div class="logo">ACHOU<span>+</span><span class="tag">ADMIN</span></div>
+        <button class="btn-logout" onclick="auth.signOut()">Sair</button>
+    </header>
+
+    <div class="container">
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="pendentes" onclick="switchTab('pendentes', this)">
+                Pendentes <span class="count mono" id="countPendentes">0</span>
+            </button>
+            <button class="tab-btn" data-tab="aprovadas" onclick="switchTab('aprovadas', this)">
+                Aprovadas <span class="count mono" id="countAprovadas">0</span>
+            </button>
+            <button class="tab-btn" data-tab="leads" onclick="switchTab('leads', this)">
+                Leads <span class="count mono" id="countLeads">0</span>
+            </button>
+        </div>
+
+        <div class="tab-panel active" id="tab-pendentes"><div class="empty">CARREGANDO...</div></div>
+        <div class="tab-panel" id="tab-aprovadas"><div class="empty">CARREGANDO...</div></div>
+        <div class="tab-panel" id="tab-leads"><div class="empty">CARREGANDO...</div></div>
+
+    </div>
+</div>
+
+
+<script>
+
+/* Cole aqui as MESMAS chaves usadas em achou-plus.html — é o mesmo projeto Firebase */
+const firebaseConfig = {
+    apiKey: "COLE_AQUI",
+    authDomain: "COLE_AQUI.firebaseapp.com",
+    projectId: "COLE_AQUI",
+    storageBucket: "COLE_AQUI.appspot.com",
+    messagingSenderId: "COLE_AQUI",
+    appId: "COLE_AQUI"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+function traduzErroFirebase(err){
+    const map = {
+        'auth/invalid-email': 'E-mail inválido.',
+        'auth/wrong-password': 'Senha incorreta.',
+        'auth/user-not-found': 'Não existe conta com esse e-mail.',
+        'auth/invalid-credential': 'E-mail ou senha incorretos.'
+    };
+    return map[err.code] || 'Ocorreu um erro. Tente novamente.';
+}
+
+function handleAdminLogin(e){
+    e.preventDefault();
+    const email = document.getElementById('adminEmail').value.trim();
+    const senha = document.getElementById('adminSenha').value;
+    const erroEl = document.getElementById('adminLoginError');
+    erroEl.style.display = 'none';
+
+    auth.signInWithEmailAndPassword(email, senha)
+        .catch(err => {
+            erroEl.textContent = traduzErroFirebase(err);
+            erroEl.style.display = 'block';
+        });
+
+    return false;
+}
+
+/* ---------- CONTROLE DE ACESSO ---------- */
+
+let unsubscribers = [];
+
+auth.onAuthStateChanged(async user => {
+    unsubscribers.forEach(u => u());
+    unsubscribers = [];
+
+    document.getElementById('loginScreen').hidden = true;
+    document.getElementById('deniedScreen').hidden = true;
+    document.getElementById('dashboard').hidden = true;
+
+    if(!user){
+        document.getElementById('loginScreen').hidden = false;
+        return;
+    }
+
+    try {
+        const doc = await db.collection('usuarios').doc(user.uid).get();
+        const tipo = doc.exists ? doc.data().tipo : null;
+
+        if(tipo !== 'admin'){
+            document.getElementById('deniedScreen').hidden = false;
+            return;
+        }
+
+        document.getElementById('dashboard').hidden = false;
+        iniciarListeners();
+
+    } catch(err){
+        console.error(err);
+        document.getElementById('deniedScreen').hidden = false;
+    }
+});
+
+/* ---------- TABS ---------- */
+
+function switchTab(tab, btn){
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+}
+
+/* ---------- LISTENERS ---------- */
+
+function iniciarListeners(){
+
+    unsubscribers.push(
+        db.collection('empresas').where('status', '==', 'pendente')
+          .onSnapshot(renderPendentes, err => console.error(err))
+    );
+
+    unsubscribers.push(
+        db.collection('empresas').where('status', '==', 'aprovado')
+          .onSnapshot(renderAprovadas, err => console.error(err))
+    );
+
+    unsubscribers.push(
+        db.collection('leads').orderBy('criado_em', 'desc').limit(100)
+          .onSnapshot(renderLeads, err => console.error(err))
+    );
+}
+
+function renderPendentes(snapshot){
+    document.getElementById('countPendentes').textContent = snapshot.size;
+    const el = document.getElementById('tab-pendentes');
+    if(snapshot.empty){
+        el.innerHTML = '<div class="empty">NENHUMA EMPRESA PENDENTE.</div>';
+        return;
+    }
+    el.innerHTML = snapshot.docs.map(doc => {
+        const e = doc.data();
+        return `
+            <div class="row">
+                <div class="row-info">
+                    <h3>${e.nome}</h3>
+                    <div class="meta">${e.categoria} · ${e.whatsapp}</div>
+                    <div class="desc">${e.descricao || ''}</div>
+                </div>
+                <div class="row-actions">
+                    <button class="btn-approve" onclick="aprovarEmpresa('${doc.id}')">Aprovar</button>
+                    <button class="btn-reject" onclick="rejeitarEmpresa('${doc.id}')">Rejeitar</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderAprovadas(snapshot){
+    document.getElementById('countAprovadas').textContent = snapshot.size;
+    const el = document.getElementById('tab-aprovadas');
+    if(snapshot.empty){
+        el.innerHTML = '<div class="empty">NENHUMA EMPRESA APROVADA AINDA.</div>';
+        return;
+    }
+    el.innerHTML = snapshot.docs.map(doc => {
+        const e = doc.data();
+        return `
+            <div class="row">
+                <div class="row-info">
+                    <h3>${e.nome}</h3>
+                    <div class="meta">${e.categoria} · ${e.whatsapp} · ⭐ ${(e.avaliacao_media || 0).toFixed(1)}</div>
+                    <div class="desc">${e.descricao || ''}</div>
+                </div>
+                <div class="row-actions">
+                    <label class="toggle-label">
+                        <input type="checkbox" ${e.verificado ? 'checked' : ''}
+                               onchange="toggleCampo('${doc.id}', 'verificado', this.checked)">
+                        Verificado
+                    </label>
+                    <label class="toggle-label">
+                        <input type="checkbox" ${e.destaque ? 'checked' : ''}
+                               onchange="toggleCampo('${doc.id}', 'destaque', this.checked)">
+                        Destaque
+                    </label>
+                    <button class="btn-reject" onclick="rejeitarEmpresa('${doc.id}')">Desativar</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderLeads(snapshot){
+    document.getElementById('countLeads').textContent = snapshot.size;
+    const el = document.getElementById('tab-leads');
+    if(snapshot.empty){
+        el.innerHTML = '<div class="empty">NENHUM PEDIDO AINDA.</div>';
+        return;
+    }
+    el.innerHTML = snapshot.docs.map(doc => {
+        const l = doc.data();
+        const statusClass = l.status === 'atendido' ? 'status-atendido' : 'status-novo';
+        const dataStr = l.criado_em && l.criado_em.toDate ? l.criado_em.toDate().toLocaleString('pt-BR') : '—';
+        return `
+            <div class="row">
+                <div class="row-info">
+                    <h3>${l.categoria || 'Sem categoria'}</h3>
+                    <div class="meta">${dataStr} · <span class="status-tag ${statusClass}">${(l.status || 'novo').toUpperCase()}</span></div>
+                    <div class="desc">${l.descricao || ''}</div>
+                </div>
+                <div class="row-actions">
+                    <a class="btn-wa" href="https://wa.me/${l.whatsapp}" target="_blank">WhatsApp</a>
+                    ${l.status !== 'atendido' ? `<button class="btn-approve" onclick="marcarAtendido('${doc.id}')">Marcar atendido</button>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/* ---------- AÇÕES ---------- */
+
+function aprovarEmpresa(id){
+    db.collection('empresas').doc(id).update({ status: 'aprovado' });
+}
+
+function rejeitarEmpresa(id){
+    db.collection('empresas').doc(id).update({ status: 'rejeitado' });
+}
+
+function toggleCampo(id, campo, valor){
+    db.collection('empresas').doc(id).update({ [campo]: valor });
+}
+
+function marcarAtendido(id){
+    db.collection('leads').doc(id).update({ status: 'atendido' });
+}
+
+</script>
+
+</body>
+</html>
