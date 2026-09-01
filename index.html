@@ -448,6 +448,26 @@ textarea:focus-visible{
 }
 .view-toggle button.active{background:var(--ink);color:var(--paper);}
 
+.location-filter{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+.location-filter select{
+    flex:1;
+    min-width:160px;
+    padding:12px 14px;
+    border-radius:var(--radius-s);
+    border:1.5px solid var(--line-strong);
+    background:var(--surface);
+    color:var(--ink);
+    font-size:13.5px;
+    font-weight:600;
+    outline:none;
+}
+.location-filter select:focus{border-color:var(--accent);}
+.location-filter select:disabled{opacity:0.5;}
+
 #mapView{display:none;}
 #mapView.active{display:block;}
 #leafletMap{
@@ -688,34 +708,47 @@ footer .fine{
 
     <div class="categories" id="categories">
         <div class="category" data-cat="Celulares" onclick="filterCategory('Celulares', this)">
-            <div class="icon-ring">📱</div><p>Celulares</p><span class="count">14 perto</span>
+            <div class="icon-ring">📱</div><p>Celulares</p><span class="count" data-count-for="Celulares">—</span>
         </div>
         <div class="category" data-cat="Informática" onclick="filterCategory('Informática', this)">
-            <div class="icon-ring">💻</div><p>Informática</p><span class="count">9 perto</span>
+            <div class="icon-ring">💻</div><p>Informática</p><span class="count" data-count-for="Informática">—</span>
         </div>
         <div class="category" data-cat="Automóveis" onclick="filterCategory('Automóveis', this)">
-            <div class="icon-ring">🚗</div><p>Automóveis</p><span class="count">21 perto</span>
+            <div class="icon-ring">🚗</div><p>Automóveis</p><span class="count" data-count-for="Automóveis">—</span>
         </div>
         <div class="category" data-cat="Casa" onclick="filterCategory('Casa', this)">
-            <div class="icon-ring">🔧</div><p>Casa</p><span class="count">17 perto</span>
+            <div class="icon-ring">🔧</div><p>Casa</p><span class="count" data-count-for="Casa">—</span>
         </div>
         <div class="category" data-cat="Beleza" onclick="filterCategory('Beleza', this)">
-            <div class="icon-ring">💇</div><p>Beleza</p><span class="count">12 perto</span>
+            <div class="icon-ring">💇</div><p>Beleza</p><span class="count" data-count-for="Beleza">—</span>
         </div>
         <div class="category" data-cat="Alimentação" onclick="filterCategory('Alimentação', this)">
-            <div class="icon-ring">🍔</div><p>Alimentação</p><span class="count">26 perto</span>
+            <div class="icon-ring">🍔</div><p>Alimentação</p><span class="count" data-count-for="Alimentação">—</span>
         </div>
         <div class="category" data-cat="Pets" onclick="filterCategory('Pets', this)">
-            <div class="icon-ring">🐶</div><p>Pets</p><span class="count">6 perto</span>
+            <div class="icon-ring">🐶</div><p>Pets</p><span class="count" data-count-for="Pets">—</span>
         </div>
         <div class="category" data-cat="Construção" onclick="filterCategory('Construção', this)">
-            <div class="icon-ring">🏗️</div><p>Construção</p><span class="count">11 perto</span>
+            <div class="icon-ring">🏗️</div><p>Construção</p><span class="count" data-count-for="Construção">—</span>
         </div>
     </div>
 
+    <div class="section-title" style="margin-top:clamp(28px,5vw,40px);">
+        <h2>Onde você procura?</h2>
+        <span class="eyebrow">FILTRAR POR REGIÃO</span>
+    </div>
+
+    <div class="location-filter">
+        <select id="filterEstado" onchange="preencherMunicipios(this.value, document.getElementById('filterMunicipio'), 'Todos os municípios'); applyFilters();">
+            <option value="">Todos os estados</option>
+        </select>
+        <select id="filterMunicipio" onchange="applyFilters()" disabled>
+            <option value="">Todos os municípios</option>
+        </select>
+    </div>
 
     <div class="section-title" style="margin-top:clamp(36px,7vw,52px);">
-        <h2>Perto de você agora</h2>
+        <h2>Profissionais disponíveis</h2>
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
             <span class="eyebrow" id="resultsLabel">CARREGANDO...</span>
             <div class="view-toggle">
@@ -786,6 +819,18 @@ footer .fine{
         </div>
         <div class="field"><label>WhatsApp (com DDD)</label><input id="regWhatsapp" type="tel" placeholder="41999990000" required></div>
         <div class="field"><label>Descrição curta</label><input id="regDescricao" type="text" placeholder="Ex: conserto de celulares e desbloqueio" required></div>
+        <div class="field">
+            <label>Estado</label>
+            <select id="regEstado" required onchange="preencherMunicipios(this.value, document.getElementById('regMunicipio'), 'Selecione o estado primeiro')">
+                <option value="">Carregando estados...</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Município</label>
+            <select id="regMunicipio" required disabled>
+                <option value="">Selecione o estado primeiro</option>
+            </select>
+        </div>
         <div class="field"><label>Endereço (aparece no perfil)</label><input id="regEndereco" type="text" placeholder="Rua, número, bairro"></div>
         <button type="button" class="btn-locate" id="btnLocate" onclick="capturarLocalizacaoEmpresa()">📍 Capturar localização do negócio</button>
         <div class="field"><label>E-mail (login da conta)</label><input id="regEmail" type="email" required></div>
@@ -836,9 +881,69 @@ let regLng = null;
 let leafletMap = null;
 let mapMarkers = [];
 
-/* Centro de referência: São José dos Pinhais, PR (usado se ninguém tiver localização) */
-const CIDADE_LAT = -25.5322;
-const CIDADE_LNG = -49.2044;
+/* Centro de referência: Brasília (usado só como ponto de partida do mapa quando ninguém tem localização) */
+const CIDADE_LAT = -15.7801;
+const CIDADE_LNG = -47.9292;
+
+/* ---------- ESTADOS E MUNICÍPIOS (API pública do IBGE) ---------- */
+
+let estadosCache = [];
+
+function inicializarEstados(){
+    fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
+        .then(r => r.json())
+        .then(data => {
+            estadosCache = data;
+            preencherSelectEstados(document.getElementById('filterEstado'), 'Todos os estados');
+        })
+        .catch(() => {
+            const el = document.getElementById('filterEstado');
+            if(el) el.innerHTML = '<option value="">Não foi possível carregar os estados</option>';
+        });
+}
+
+function preencherSelectEstados(selectEl, placeholder){
+    if(!selectEl) return;
+    if(estadosCache.length === 0){
+        fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
+            .then(r => r.json())
+            .then(data => {
+                estadosCache = data;
+                selectEl.innerHTML = `<option value="">${placeholder}</option>` +
+                    estadosCache.map(e => `<option value="${e.sigla}">${e.nome} (${e.sigla})</option>`).join('');
+            })
+            .catch(() => {
+                selectEl.innerHTML = '<option value="">Não foi possível carregar os estados</option>';
+            });
+        return;
+    }
+    selectEl.innerHTML = `<option value="">${placeholder}</option>` +
+        estadosCache.map(e => `<option value="${e.sigla}">${e.nome} (${e.sigla})</option>`).join('');
+}
+
+function preencherMunicipios(uf, selectEl, placeholderVazio){
+    if(!selectEl) return;
+    if(!uf){
+        selectEl.innerHTML = `<option value="">${placeholderVazio}</option>`;
+        selectEl.disabled = true;
+        return;
+    }
+    selectEl.disabled = true;
+    selectEl.innerHTML = '<option value="">Carregando municípios...</option>';
+    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`)
+        .then(r => r.json())
+        .then(data => {
+            const placeholder = placeholderVazio.includes('primeiro') ? 'Selecione o município' : 'Todos os municípios';
+            selectEl.innerHTML = `<option value="">${placeholder}</option>` +
+                data.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
+            selectEl.disabled = false;
+        })
+        .catch(() => {
+            selectEl.innerHTML = '<option value="">Erro ao carregar municípios</option>';
+        });
+}
+
+inicializarEstados();
 
 /* ---------- DISTÂNCIA (fórmula de Haversine) ---------- */
 
@@ -887,6 +992,7 @@ db.collection('empresas')
   .onSnapshot(
     snapshot => {
         allEmpresas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        atualizarContadoresCategorias();
         applyFilters();
     },
     error => {
@@ -901,9 +1007,10 @@ function businessCardHTML(empresa){
         ? '<span class="badge featured">⭐ DESTAQUE</span>'
         : (empresa.verificado ? '<span class="badge">✓ VERIFICADO</span>' : '<span class="badge">NOVO</span>');
     const nota = empresa.avaliacao_media ? empresa.avaliacao_media.toFixed(1) : '—';
+    const localTxt = [empresa.cidade, empresa.estado].filter(Boolean).join(' - ');
     const distanciaTxt = (typeof empresa._distancia === 'number')
         ? `${empresa._distancia.toFixed(1)} KM DE VOCÊ`
-        : (empresa.cidade || 'São José dos Pinhais');
+        : (localTxt || 'Local não informado');
     return `
         <div class="business" data-id="${empresa.id}">
             <div class="business-cover">
@@ -923,8 +1030,23 @@ function businessCardHTML(empresa){
     `;
 }
 
+function atualizarContadoresCategorias(){
+    const contagem = {};
+    allEmpresas.forEach(e => {
+        contagem[e.categoria] = (contagem[e.categoria] || 0) + 1;
+    });
+    document.querySelectorAll('[data-count-for]').forEach(el => {
+        const cat = el.dataset.countFor;
+        const n = contagem[cat] || 0;
+        el.textContent = n === 0 ? 'nenhuma ainda' : (n + (n === 1 ? ' empresa' : ' empresas'));
+    });
+}
+
 function applyFilters(){
     const input = document.getElementById('searchInput').value.toLowerCase().trim();
+    const filtroEstado = document.getElementById('filterEstado') ? document.getElementById('filterEstado').value : '';
+    const filtroMunicipio = document.getElementById('filterMunicipio') ? document.getElementById('filterMunicipio').value : '';
+
     let list = allEmpresas.map(e => {
         if(userLat !== null && typeof e.lat === 'number' && typeof e.lng === 'number'){
             e._distancia = calcularDistanciaKm(userLat, userLng, e.lat, e.lng);
@@ -936,6 +1058,12 @@ function applyFilters(){
 
     if(activeCategory){
         list = list.filter(e => e.categoria === activeCategory);
+    }
+    if(filtroEstado){
+        list = list.filter(e => e.estado === filtroEstado);
+    }
+    if(filtroMunicipio){
+        list = list.filter(e => e.cidade === filtroMunicipio);
     }
     if(input){
         list = list.filter(e =>
@@ -1056,10 +1184,11 @@ function viewProfile(empresaId){
     avaliandoEstrelas = 0;
 
     const distanciaTxt = typeof empresa._distancia === 'number' ? `${empresa._distancia.toFixed(1)} km de você` : '';
+    const localTxt = [empresa.cidade, empresa.estado].filter(Boolean).join(' - ');
 
     showModal(`
         <h3>${empresa.nome}</h3>
-        <p class="modal-sub">${empresa.categoria}${distanciaTxt ? ' · ' + distanciaTxt : ''}</p>
+        <p class="modal-sub">${empresa.categoria}${localTxt ? ' · ' + localTxt : ''}${distanciaTxt ? ' · ' + distanciaTxt : ''}</p>
         <p style="font-size:14px;color:#4A4E55;line-height:1.5;">
             ${empresa.descricao || ''}
         </p>
@@ -1165,6 +1294,7 @@ function openModal(type){
     if(type === 'register'){
         regLat = null;
         regLng = null;
+        preencherSelectEstados(document.getElementById('regEstado'), 'Selecione o estado');
     }
 }
 
@@ -1237,17 +1367,28 @@ function handleRegister(e){
     const categoria = document.getElementById('regCategoria').value;
     const whatsapp = document.getElementById('regWhatsapp').value.replace(/\D/g, '');
     const descricao = document.getElementById('regDescricao').value.trim();
+    const estado = document.getElementById('regEstado').value;
+    const cidade = document.getElementById('regMunicipio').value;
     const endereco = document.getElementById('regEndereco').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const senha = document.getElementById('regSenha').value;
     const erroEl = document.getElementById('registerError');
     erroEl.style.display = 'none';
 
+    if(!estado || !cidade){
+        erroEl.textContent = 'Selecione o estado e o município do seu negócio.';
+        erroEl.style.display = 'block';
+        return false;
+    }
+
     if(regLat === null || regLng === null){
         erroEl.textContent = 'Clique em "Capturar localização do negócio" antes de enviar — é o que permite aparecer na busca por distância.';
         erroEl.style.display = 'block';
         return false;
     }
+
+    const estadoObj = estadosCache.find(uf => uf.sigla === estado);
+    const estadoNome = estadoObj ? estadoObj.nome : estado;
 
     auth.createUserWithEmailAndPassword(email, senha)
         .then(cred => {
@@ -1263,9 +1404,11 @@ function handleRegister(e){
             const empresaRef = db.collection('empresas').doc();
             batch.set(empresaRef, {
                 uid, nome, categoria, whatsapp, descricao, endereco,
+                estado,
+                estado_nome: estadoNome,
+                cidade,
                 lat: regLat,
                 lng: regLng,
-                cidade: 'São José dos Pinhais',
                 status: 'pendente',       // um admin aprova depois (painel administrativo)
                 destaque: false,
                 verificado: false,
