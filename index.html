@@ -16,8 +16,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
 
 <!-- Leaflet (mapa com OpenStreetMap — gratuito, sem chave de API) -->
-<link rel="stylesheet" href="https://unpkg.com/[email protected]/dist/leaflet.css">
-<script src="https://unpkg.com/[email protected]/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
 <style>
 
@@ -977,11 +977,16 @@ function switchView(view){
     document.getElementById('mapView').classList.toggle('active', view === 'map');
     if(view === 'map'){
         if(!leafletMap) initMap();
-        setTimeout(() => leafletMap.invalidateSize(), 50); // corrige o tamanho ao exibir
+        setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, 50); // corrige o tamanho ao exibir
     }
 }
 
 function initMap(){
+    if(typeof L === 'undefined'){
+        document.getElementById('leafletMap').innerHTML =
+            '<div class="no-results" style="padding-top:60px;">NÃO FOI POSSÍVEL CARREGAR O MAPA. VERIFIQUE SUA CONEXÃO E TENTE NOVAMENTE.</div>';
+        return;
+    }
     leafletMap = L.map('leafletMap').setView(
         [userLat || CIDADE_LAT, userLng || CIDADE_LNG], 13
     );
