@@ -186,6 +186,9 @@ header{
             <button class="tab-btn" data-tab="aprovadas" onclick="switchTab('aprovadas', this)">
                 Aprovadas <span class="count mono" id="countAprovadas">0</span>
             </button>
+            <button class="tab-btn" data-tab="desativadas" onclick="switchTab('desativadas', this)">
+                Desativadas <span class="count mono" id="countDesativadas">0</span>
+            </button>
             <button class="tab-btn" data-tab="leads" onclick="switchTab('leads', this)">
                 Leads <span class="count mono" id="countLeads">0</span>
             </button>
@@ -193,6 +196,7 @@ header{
 
         <div class="tab-panel active" id="tab-pendentes"><div class="empty">CARREGANDO...</div></div>
         <div class="tab-panel" id="tab-aprovadas"><div class="empty">CARREGANDO...</div></div>
+        <div class="tab-panel" id="tab-desativadas"><div class="empty">CARREGANDO...</div></div>
         <div class="tab-panel" id="tab-leads"><div class="empty">CARREGANDO...</div></div>
 
     </div>
@@ -299,6 +303,11 @@ function iniciarListeners(){
     );
 
     unsubscribers.push(
+        db.collection('empresas').where('status', '==', 'rejeitado')
+          .onSnapshot(renderDesativadas, err => console.error(err))
+    );
+
+    unsubscribers.push(
         db.collection('leads').orderBy('criado_em', 'desc').limit(100)
           .onSnapshot(renderLeads, err => console.error(err))
     );
@@ -363,6 +372,30 @@ function renderAprovadas(snapshot){
     }).join('');
 }
 
+function renderDesativadas(snapshot){
+    document.getElementById('countDesativadas').textContent = snapshot.size;
+    const el = document.getElementById('tab-desativadas');
+    if(snapshot.empty){
+        el.innerHTML = '<div class="empty">NENHUMA EMPRESA DESATIVADA.</div>';
+        return;
+    }
+    el.innerHTML = snapshot.docs.map(doc => {
+        const e = doc.data();
+        return `
+            <div class="row">
+                <div class="row-info">
+                    <h3>${e.nome}</h3>
+                    <div class="meta">${e.categoria} · ${[e.cidade, e.estado].filter(Boolean).join('-') || 'sem local'} · ${e.whatsapp}</div>
+                    <div class="desc">${e.descricao || ''}</div>
+                </div>
+                <div class="row-actions">
+                    <button class="btn-approve" onclick="reativarEmpresa('${doc.id}')">Reativar</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
 function renderLeads(snapshot){
     document.getElementById('countLeads').textContent = snapshot.size;
     const el = document.getElementById('tab-leads');
@@ -398,6 +431,10 @@ function aprovarEmpresa(id){
 
 function rejeitarEmpresa(id){
     db.collection('empresas').doc(id).update({ status: 'rejeitado' });
+}
+
+function reativarEmpresa(id){
+    db.collection('empresas').doc(id).update({ status: 'aprovado' });
 }
 
 function toggleCampo(id, campo, valor){
