@@ -317,7 +317,7 @@ function renderPendentes(snapshot){
             <div class="row">
                 <div class="row-info">
                     <h3>${e.nome}</h3>
-                    <div class="meta">${e.categoria} · ${e.whatsapp}</div>
+                    <div class="meta">${e.categoria} · ${[e.cidade, e.estado].filter(Boolean).join('-') || 'sem local'} · ${e.whatsapp}</div>
                     <div class="desc">${e.descricao || ''}</div>
                 </div>
                 <div class="row-actions">
@@ -342,7 +342,7 @@ function renderAprovadas(snapshot){
             <div class="row">
                 <div class="row-info">
                     <h3>${e.nome}</h3>
-                    <div class="meta">${e.categoria} · ${e.whatsapp} · ⭐ ${(e.avaliacao_media || 0).toFixed(1)}</div>
+                    <div class="meta">${e.categoria} · ${[e.cidade, e.estado].filter(Boolean).join('-') || 'sem local'} · ${e.whatsapp} · ⭐ ${(e.avaliacao_media || 0).toFixed(1)}</div>
                     <div class="desc">${e.descricao || ''}</div>
                 </div>
                 <div class="row-actions">
