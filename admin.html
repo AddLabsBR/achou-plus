@@ -120,6 +120,8 @@ header{
 .btn-approve:hover{background:var(--accent-dark);}
 .btn-reject{background:transparent;border:1.5px solid var(--line-strong)!important;color:var(--ink);}
 .btn-reject:hover{border-color:var(--urgent)!important;color:var(--urgent);}
+.btn-delete{background:transparent;border:1.5px solid var(--urgent)!important;color:var(--urgent);}
+.btn-delete:hover{background:var(--urgent);color:#fff;}
 .btn-wa{background:var(--dark);color:#fff;text-decoration:none;display:inline-block;}
 .btn-wa:hover{background:var(--dark-2);}
 
@@ -390,6 +392,7 @@ function renderDesativadas(snapshot){
                 </div>
                 <div class="row-actions">
                     <button class="btn-approve" onclick="reativarEmpresa('${doc.id}')">Reativar</button>
+                    <button class="btn-delete" onclick="excluirEmpresa('${doc.id}', '${(e.nome || '').replace(/'/g, "\\'")}')">Excluir</button>
                 </div>
             </div>
         `;
@@ -435,6 +438,11 @@ function rejeitarEmpresa(id){
 
 function reativarEmpresa(id){
     db.collection('empresas').doc(id).update({ status: 'aprovado' });
+}
+
+function excluirEmpresa(id, nome){
+    if(!confirm(`Excluir "${nome}" definitivamente? Essa ação não pode ser desfeita.`)) return;
+    db.collection('empresas').doc(id).delete();
 }
 
 function toggleCampo(id, campo, valor){
