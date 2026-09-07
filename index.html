@@ -845,6 +845,7 @@ footer .fine{
         </div>
         <div class="field"><label>Endereço (aparece no perfil)</label><input id="regEndereco" type="text" placeholder="Rua, número, bairro"></div>
         <button type="button" class="btn-locate" id="btnLocate" onclick="capturarLocalizacaoEmpresa()">📍 Capturar localização do negócio</button>
+        <p id="locateError" style="color:var(--urgent);font-size:12.5px;margin:-8px 0 12px;display:none;"></p>
         <div class="field"><label>E-mail (login da conta)</label><input id="regEmail" type="email" required></div>
         <div class="field"><label>Senha</label><input id="regSenha" type="password" minlength="6" required></div>
         <p id="registerError" style="color:var(--urgent);font-size:12.5px;margin-bottom:10px;display:none;"></p>
@@ -1278,7 +1279,11 @@ function carregarAvaliacoes(empresaId){
               `;
           }).join('');
       })
-      .catch(err => console.error('Erro ao carregar avaliações:', err));
+      .catch(err => {
+          console.error('Erro ao carregar avaliações:', err);
+          const el = document.getElementById('avaliacoesList');
+          if(el) el.innerHTML = '<p style="font-size:12.5px;color:var(--urgent);">Não foi possível carregar as avaliações agora.</p>';
+      });
 }
 
 function enviarAvaliacao(empresaId){
@@ -1332,6 +1337,7 @@ function capturarLocalizacaoEmpresa(){
         return;
     }
     btn.textContent = 'CAPTURANDO...';
+    document.getElementById('locateError').style.display = 'none';
     navigator.geolocation.getCurrentPosition(
         pos => {
             regLat = pos.coords.latitude;
@@ -1341,7 +1347,9 @@ function capturarLocalizacaoEmpresa(){
         },
         () => {
             btn.textContent = '📍 CAPTURAR LOCALIZAÇÃO DO NEGÓCIO';
-            alert('Não foi possível capturar a localização. Verifique a permissão do navegador e tente de novo.');
+            const erroEl = document.getElementById('locateError');
+            erroEl.textContent = 'Não foi possível capturar a localização. Verifique a permissão do navegador e tente de novo.';
+            erroEl.style.display = 'block';
         }
     );
 }
