@@ -811,6 +811,24 @@ footer .fine{
         <p id="loginError" style="color:var(--urgent);font-size:12.5px;margin-bottom:10px;display:none;"></p>
         <button class="modal-submit" type="submit">Entrar</button>
     </form>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:14px;text-align:center;">
+        Não tem conta? <a href="#" onclick="openModal('criar-conta');return false;" style="color:var(--accent-dark);font-weight:700;">Criar conta para avaliar</a>
+    </p>
+</template>
+
+<template id="tpl-criar-conta">
+    <h3>Criar conta</h3>
+    <p class="modal-sub">Só o necessário para deixar avaliações no ACHOU+. Se você tem uma empresa, use "Cadastrar empresa" em vez disso.</p>
+    <form id="criarContaForm" onsubmit="return handleCriarConta(event)">
+        <div class="field"><label>Nome</label><input id="ccNome" type="text" required></div>
+        <div class="field"><label>E-mail</label><input id="ccEmail" type="email" required></div>
+        <div class="field"><label>Senha</label><input id="ccSenha" type="password" minlength="6" required></div>
+        <p id="criarContaError" style="color:var(--urgent);font-size:12.5px;margin-bottom:10px;display:none;"></p>
+        <button class="modal-submit" type="submit">Criar conta</button>
+    </form>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:14px;text-align:center;">
+        Já tem conta? <a href="#" onclick="openModal('login');return false;" style="color:var(--accent-dark);font-weight:700;">Entrar</a>
+    </p>
 </template>
 
 <template id="tpl-register">
@@ -1223,21 +1241,16 @@ function viewProfile(empresaId){
             </p>
             <div id="avaliacoesList" style="max-height:180px;overflow-y:auto;">Carregando...</div>
 
-            ${currentUser ? `
-                <div style="margin-top:16px;">
-                    <p class="eyebrow" style="margin-bottom:8px;">DEIXE SUA AVALIAÇÃO</p>
-                    <div class="star-input" id="starInput">
-                        ${[1,2,3,4,5].map(n => `<span class="star" data-n="${n}" onclick="setStar(${n})">☆</span>`).join('')}
-                    </div>
-                    <textarea id="avalComentario" placeholder="Como foi o atendimento?" style="width:100%;margin-top:10px;padding:10px 12px;border-radius:8px;border:1.5px solid var(--line-strong);font-size:13.5px;min-height:60px;background:var(--paper);color:var(--ink);outline:none;font-family:inherit;"></textarea>
-                    <button class="modal-submit" style="margin-top:10px;" onclick="enviarAvaliacao('${empresa.id}')">Enviar avaliação</button>
-                    <p id="avalError" style="color:var(--urgent);font-size:12.5px;margin-top:8px;display:none;"></p>
+            <div style="margin-top:16px;">
+                <p class="eyebrow" style="margin-bottom:8px;">DEIXE SUA AVALIAÇÃO</p>
+                <div class="star-input" id="starInput">
+                    ${[1,2,3,4,5].map(n => `<span class="star" data-n="${n}" onclick="setStar(${n})">☆</span>`).join('')}
                 </div>
-            ` : `
-                <p style="font-size:12.5px;color:var(--muted);margin-top:14px;">
-                    <a href="#" onclick="openModal('login');return false;" style="color:var(--accent-dark);font-weight:700;">Entre na sua conta</a> para deixar sua avaliação.
-                </p>
-            `}
+                <input id="avalNome" type="text" placeholder="Seu nome (opcional)" style="width:100%;margin-top:10px;padding:10px 12px;border-radius:8px;border:1.5px solid var(--line-strong);font-size:13.5px;background:var(--paper);color:var(--ink);outline:none;font-family:inherit;">
+                <textarea id="avalComentario" placeholder="Como foi o atendimento?" style="width:100%;margin-top:10px;padding:10px 12px;border-radius:8px;border:1.5px solid var(--line-strong);font-size:13.5px;min-height:60px;background:var(--paper);color:var(--ink);outline:none;font-family:inherit;"></textarea>
+                <button class="modal-submit" style="margin-top:10px;" onclick="enviarAvaliacao('${empresa.id}')">Enviar avaliação</button>
+                <p id="avalError" style="color:var(--urgent);font-size:12.5px;margin-top:8px;display:none;"></p>
+            </div>
         </div>
     `);
 
@@ -1272,7 +1285,7 @@ function carregarAvaliacoes(empresaId){
               const data = a.criado_em && a.criado_em.toDate ? a.criado_em.toDate().toLocaleDateString('pt-BR') : '';
               return `
                   <div class="review-item">
-                      <span class="review-stars">${estrelas}</span>
+                      <span class="review-stars">${estrelas}</span> ${a.nome_avaliador ? `<strong style="font-size:12.5px;">${a.nome_avaliador}</strong>` : '<span style="font-size:12.5px;color:var(--muted);">Anônimo</span>'}
                       ${a.comentario ? `<div class="review-comment">${a.comentario}</div>` : ''}
                       <div class="review-date">${data}</div>
                   </div>
@@ -1296,17 +1309,24 @@ function enviarAvaliacao(empresaId){
         return;
     }
 
-    const comentario = document.getElementById('avalComentario').value.trim();
-    const docId = `${empresaId}_${currentUser.uid}`; // 1 avaliação por pessoa por empresa (reenviar edita a anterior)
+    if(localStorage.getItem('avaliado_' + empresaId)){
+        erroEl.textContent = 'Você já avaliou esta empresa neste dispositivo.';
+        erroEl.style.display = 'block';
+        return;
+    }
 
-    db.collection('avaliacoes').doc(docId).set({
+    const comentario = document.getElementById('avalComentario').value.trim();
+    const nomeAvaliador = document.getElementById('avalNome').value.trim();
+
+    db.collection('avaliacoes').add({
         empresaId,
-        uid: currentUser.uid,
+        nome_avaliador: nomeAvaliador || null,
         nota: avaliandoEstrelas,
         comentario,
         criado_em: firebase.firestore.FieldValue.serverTimestamp()
     })
     .then(() => {
+        localStorage.setItem('avaliado_' + empresaId, '1');
         showSuccess('Avaliação enviada!', 'Obrigado por ajudar outras pessoas a encontrar bons profissionais.');
         fetch(`${NETLIFY_FUNCTIONS_BASE}/recalcular-avaliacoes`, {
             method: 'POST',
@@ -1385,6 +1405,32 @@ function handleLogin(e){
     auth.signInWithEmailAndPassword(email, senha)
         .then(() => {
             showSuccess('Bem-vindo de volta!', 'Login feito com sucesso.');
+        })
+        .catch(err => {
+            erroEl.textContent = traduzErroFirebase(err);
+            erroEl.style.display = 'block';
+        });
+
+    return false;
+}
+
+function handleCriarConta(e){
+    e.preventDefault();
+    const nome = document.getElementById('ccNome').value.trim();
+    const email = document.getElementById('ccEmail').value.trim();
+    const senha = document.getElementById('ccSenha').value;
+    const erroEl = document.getElementById('criarContaError');
+    erroEl.style.display = 'none';
+
+    auth.createUserWithEmailAndPassword(email, senha)
+        .then(cred => {
+            return db.collection('usuarios').doc(cred.user.uid).set({
+                nome, email, tipo: 'cliente',
+                criado_em: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        })
+        .then(() => {
+            showSuccess('Conta criada!', 'Agora você já pode deixar avaliações nas empresas do ACHOU+.');
         })
         .catch(err => {
             erroEl.textContent = traduzErroFirebase(err);
