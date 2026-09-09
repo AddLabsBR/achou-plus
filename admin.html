@@ -142,6 +142,43 @@ header{
 
 [hidden]{display:none!important;}
 
+/* CONFIRM MODAL */
+.confirm-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(21,24,29,.55);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+.confirm-overlay.open{display:flex;}
+.confirm-box{
+    background:var(--surface);
+    max-width:380px;
+    width:100%;
+    border-radius:var(--radius-m);
+    padding:26px 24px;
+    border-top:3px solid var(--urgent);
+}
+.confirm-box h3{font-size:19px;text-transform:none;font-family:'Inter',sans-serif;font-weight:800;margin-bottom:8px;}
+.confirm-box p{font-size:13.5px;color:#4A4E55;line-height:1.5;margin-bottom:20px;}
+.confirm-actions{display:flex;gap:10px;}
+.confirm-actions button{
+    flex:1;
+    padding:11px;
+    border-radius:var(--radius-s);
+    font-weight:700;
+    font-size:13.5px;
+    cursor:pointer;
+    border:none;
+}
+.confirm-cancel{background:var(--paper);border:1.5px solid var(--line-strong)!important;color:var(--ink);}
+.confirm-cancel:hover{border-color:var(--ink)!important;}
+.confirm-ok{background:var(--urgent);color:#fff;}
+.confirm-ok:hover{background:#B8451F;}
+
 @media(max-width:600px){
     .row{flex-direction:column;align-items:flex-start;}
     .row-actions{width:100%;}
@@ -176,7 +213,10 @@ header{
 
     <header>
         <div class="logo">ACHOU<span>+</span><span class="tag">ADMIN</span></div>
-        <button class="btn-logout" onclick="auth.signOut()">Sair</button>
+        <div style="display:flex;gap:8px;">
+            <a class="btn-logout" href="https://console.firebase.google.com/project/achou-plus/firestore/data/~2Fempresas" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;">Firestore ↗</a>
+            <button class="btn-logout" onclick="auth.signOut()">Sair</button>
+        </div>
     </header>
 
     <div class="container">
@@ -201,6 +241,17 @@ header{
         <div class="tab-panel" id="tab-desativadas"><div class="empty">CARREGANDO...</div></div>
         <div class="tab-panel" id="tab-leads"><div class="empty">CARREGANDO...</div></div>
 
+    </div>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay" onclick="if(event.target===this)fecharConfirm()">
+    <div class="confirm-box">
+        <h3 id="confirmTitle">Confirmar</h3>
+        <p id="confirmText"></p>
+        <div class="confirm-actions">
+            <button class="confirm-cancel" onclick="fecharConfirm()">Cancelar</button>
+            <button class="confirm-ok" id="confirmOkBtn">Excluir</button>
+        </div>
     </div>
 </div>
 
@@ -441,8 +492,26 @@ function reativarEmpresa(id){
 }
 
 function excluirEmpresa(id, nome){
-    if(!confirm(`Excluir "${nome}" definitivamente? Essa ação não pode ser desfeita.`)) return;
-    db.collection('empresas').doc(id).delete();
+    abrirConfirm(
+        `Excluir "${nome}"?`,
+        'Essa ação não pode ser desfeita — a empresa e todos os dados dela serão apagados permanentemente.',
+        () => db.collection('empresas').doc(id).delete()
+    );
+}
+
+function abrirConfirm(titulo, texto, aoConfirmar){
+    document.getElementById('confirmTitle').textContent = titulo;
+    document.getElementById('confirmText').textContent = texto;
+    const okBtn = document.getElementById('confirmOkBtn');
+    okBtn.onclick = () => {
+        aoConfirmar();
+        fecharConfirm();
+    };
+    document.getElementById('confirmOverlay').classList.add('open');
+}
+
+function fecharConfirm(){
+    document.getElementById('confirmOverlay').classList.remove('open');
 }
 
 function toggleCampo(id, campo, valor){
