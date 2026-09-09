@@ -1557,7 +1557,10 @@ auth.onAuthStateChanged(async user => {
     const loginBtn = document.querySelector('.btn-login:not(#btnPlano)');
     const planoBtn = document.getElementById('btnPlano');
 
-    if(user){
+    // Sessões anônimas (criadas na hora de avaliar) ficam totalmente
+    // invisíveis — a pessoa nunca "fez login" de verdade, então o header
+    // continua mostrando "Entrar" normalmente.
+    if(user && !user.isAnonymous){
         loginBtn.textContent = 'Sair';
         loginBtn.onclick = () => auth.signOut();
 
