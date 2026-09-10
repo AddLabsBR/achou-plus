@@ -1730,20 +1730,36 @@ function requestLocation(){
         return;
     }
 
+    if(window.isSecureContext === false){
+        txt.textContent = 'ATIVAÇÃO DISPONÍVEL APENAS EM HTTPS';
+        return;
+    }
+
     txt.textContent = 'LOCALIZANDO...';
+    pill.classList.add('active');
 
     navigator.geolocation.getCurrentPosition(
         pos => {
-            userLat = pos.coords.latitude;
-            userLng = pos.coords.longitude;
-            pill.classList.add('active');
+            userLat = Number(pos.coords.latitude);
+            userLng = Number(pos.coords.longitude);
             txt.textContent = 'LOCALIZAÇÃO ATIVA · ORDENANDO POR DISTÂNCIA';
             applyFilters();
             if(leafletMap) leafletMap.setView([userLat, userLng], 13);
         },
-        () => {
-            txt.textContent = 'LOCALIZAÇÃO NEGADA · MOSTRANDO TODOS';
-        }
+        err => {
+            pill.classList.remove('active');
+            if(err && err.code === 1){
+                txt.textContent = 'PERMISSÃO NEGADA · TOQUE PARA TENTAR NOVAMENTE';
+            } else if(err && err.code === 2){
+                txt.textContent = 'LOCALIZAÇÃO INDISPONÍVEL · TENTE NOVAMENTE';
+            } else if(err && err.code === 3){
+                txt.textContent = 'TEMPO ESGOTADO · TOQUE PARA TENTAR NOVAMENTE';
+            } else {
+                txt.textContent = 'NÃO FOI POSSÍVEL LOCALIZAR · TENTE NOVAMENTE';
+            }
+            console.warn('Geolocalização:', err);
+        },
+        { enableHighAccuracy:true, timeout:10000, maximumAge:300000 }
     );
 }
 
@@ -2530,6 +2546,116 @@ document.addEventListener('click', function(e){
   .footer-links{gap:7px!important;}
   .footer-links a{min-height:32px!important;font-size:8px!important;}
   .footer-premium .fine{font-size:7px!important;}
+}
+</style>
+
+
+<style id="achou-v7-final-refinement">
+/* ACHOU+ V7 — composição desktop preservada no celular, imagens visíveis e textos alinhados */
+@media (max-width:850px){
+  .hero-inner{
+    grid-template-columns:minmax(0,1.02fr) minmax(138px,.78fr)!important;
+    gap:10px!important; padding:22px 12px 20px!important;
+    align-items:center!important;
+  }
+  .hero-copy{
+    text-align:center!important;
+    display:flex!important; flex-direction:column!important; align-items:center!important;
+    min-width:0!important;
+  }
+  .hero-copy .location-pill{margin:0 auto 10px!important; text-align:center!important;}
+  .hero-copy h1{
+    width:100%!important; text-align:center!important;
+    font-size:clamp(34px,10.8vw,53px)!important;
+    line-height:.9!important; margin:4px 0 10px!important;
+  }
+  .hero-copy>p{
+    width:100%!important; max-width:340px!important;
+    text-align:center!important; font-size:10px!important;
+    line-height:1.42!important; margin:0 auto 11px!important;
+  }
+  /* Barra em uma única linha, como no desktop */
+  .hero-search{
+    width:100%!important; height:43px!important; min-height:43px!important;
+    display:flex!important; flex-direction:row!important; align-items:center!important;
+    padding:4px!important; gap:2px!important; border-radius:12px!important;
+  }
+  .hero-search .search-icon{display:block!important; flex:0 0 14px!important; font-size:14px!important; margin:0 0 0 4px!important;}
+  .hero-search input{
+    flex:1 1 auto!important; width:auto!important; min-width:0!important;
+    height:34px!important; font-size:8.5px!important; padding:0 2px!important;
+    text-align:left!important; overflow:hidden!important; text-overflow:ellipsis!important;
+  }
+  .hero-city{
+    flex:0 0 52px!important; width:52px!important; min-width:52px!important;
+    height:33px!important; padding:0 2px!important; font-size:6.5px!important;
+    overflow:hidden!important; text-overflow:ellipsis!important;
+  }
+  .hero-search-btn{
+    flex:0 0 57px!important; width:57px!important; min-width:57px!important;
+    height:33px!important; padding:0 4px!important; font-size:7.5px!important;
+  }
+  .trust-row{width:100%!important; justify-content:center!important; text-align:center!important; gap:4px 8px!important;}
+
+  /* Imagem do topo: permanece ao lado do conteúdo e não some */
+  .hero-visual{
+    width:100%!important; height:270px!important; min-height:270px!important;
+    max-height:none!important; display:block!important; overflow:hidden!important;
+  }
+  .hero-visual img{
+    width:100%!important; height:100%!important; max-height:none!important;
+    object-fit:cover!important; object-position:55% center!important;
+    transform:none!important; display:block!important;
+  }
+
+  /* CTA inferior: imagem continua visível à direita, como na composição desktop */
+  .cta-premium{
+    grid-template-columns:minmax(0,1fr) minmax(118px,.62fr)!important;
+    grid-template-rows:auto 1fr!important;
+    min-height:190px!important; height:190px!important;
+    padding:15px!important; gap:8px!important; text-align:left!important;
+    align-items:center!important;
+  }
+  .cta-brand{grid-column:1/-1!important; margin:0!important; justify-self:start!important;}
+  .cta-main{grid-column:1!important; grid-row:2!important; align-items:flex-start!important; text-align:left!important; min-width:0!important;}
+  .cta-main h2{font-size:14px!important; line-height:1.08!important; margin:0 0 7px!important;}
+  .cta-main button{font-size:8px!important; padding:7px 12px!important;}
+  .cta-trust{display:flex!important; flex-wrap:wrap!important; gap:3px 7px!important; font-size:6.5px!important; margin-top:6px!important;}
+  .cta-photo{
+    grid-column:2!important; grid-row:2!important; width:100%!important; height:142px!important;
+    min-height:142px!important; margin:0!important; background-size:cover!important;
+    background-position:center right!important; border-radius:8px!important;
+  }
+  .cta-photo:after{right:6px!important; top:12px!important; font-size:7px!important;}
+
+  /* Rodapé: cada grupo ocupa sua própria linha, sem texto agrupado */
+  .footer-premium{
+    display:flex!important; flex-direction:column!important; align-items:center!important;
+    text-align:center!important; gap:14px!important; padding:22px 16px!important;
+  }
+  .footer-brand{justify-content:center!important; width:100%!important;}
+  .footer-links{
+    width:100%!important; display:flex!important; justify-content:center!important;
+    align-items:center!important; flex-wrap:wrap!important; gap:9px 18px!important;
+    line-height:1.5!important;
+  }
+  .footer-links a{font-size:9px!important; white-space:nowrap!important;}
+  .footer-premium .fine{width:100%!important; font-size:8px!important; line-height:1.5!important; white-space:normal!important; margin:0!important;}
+}
+
+@media (max-width:430px){
+  .hero-inner{grid-template-columns:minmax(0,1fr) minmax(118px,.68fr)!important; gap:8px!important; padding:20px 10px 18px!important;}
+  .hero-copy h1{font-size:clamp(32px,10.5vw,46px)!important;}
+  .hero-copy>p{font-size:9px!important; max-width:260px!important;}
+  .hero-search{height:40px!important; min-height:40px!important;}
+  .hero-search input{font-size:8px!important;}
+  .hero-city{flex-basis:47px!important; width:47px!important; min-width:47px!important; font-size:6px!important;}
+  .hero-search-btn{flex-basis:52px!important; width:52px!important; min-width:52px!important; font-size:7px!important;}
+  .hero-visual{height:245px!important; min-height:245px!important;}
+  .cta-premium{grid-template-columns:minmax(0,1fr) minmax(105px,.58fr)!important; min-height:175px!important; height:175px!important; padding:12px!important;}
+  .cta-photo{height:128px!important; min-height:128px!important;}
+  .cta-main h2{font-size:12px!important;}
+  .cta-trust{font-size:6px!important;}
 }
 </style>
 
