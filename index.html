@@ -7,7 +7,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
 <!-- Firebase (Auth + Firestore) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -21,17 +21,21 @@
 <style>
 
 :root{
-    --paper:#FAFAF8;
+    --paper:#FFFFFF;
+    --bg-soft:#F6F9F8;
     --surface:#FFFFFF;
-    --ink:#15181D;
-    --muted:#6B6F76;
-    --line:rgba(21,24,29,.09);
-    --line-strong:rgba(21,24,29,.22);
+    --ink:#0F1A1F;
+    --muted:#6B7280;
+    --line:rgba(15,26,31,.08);
+    --line-strong:rgba(15,26,31,.18);
     --accent:#0E7C66;
     --accent-dark:#0B6553;
+    --accent-light:#EAF6F2;
+    --accent-mid:#16A085;
     --urgent:#E2542B;
-    --dark:#14171B;
-    --dark-2:#0E1013;
+    --dark:#0F1A1F;
+    --dark-2:#0A1418;
+    --amber:#E2A63B;
 
     --space-xs:clamp(6px,1vw,10px);
     --space-s:clamp(10px,1.6vw,16px);
@@ -42,6 +46,7 @@
     --radius-s:8px;
     --radius-m:14px;
     --radius-l:20px;
+    --radius-xl:28px;
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -53,22 +58,24 @@ body{
     color:var(--ink);
     font-family:'Inter',sans-serif;
     -webkit-font-smoothing:antialiased;
+    line-height:1.5;
 }
 
 .eyebrow{
-    font-family:'JetBrains Mono',monospace;
-    font-size:11px;
-    letter-spacing:.13em;
+    font-family:'Inter',sans-serif;
+    font-size:11.5px;
+    letter-spacing:.14em;
     text-transform:uppercase;
-    font-weight:700;
+    font-weight:800;
+    color:var(--accent);
 }
 
-h1,h2,h3,.display{
-    font-family:'Anton',sans-serif;
-    font-weight:400;
-    letter-spacing:.01em;
-    text-transform:uppercase;
-    line-height:1;
+h1,h2,h3,h4{
+    font-family:'Inter',sans-serif;
+    font-weight:900;
+    letter-spacing:-.025em;
+    line-height:1.05;
+    color:var(--ink);
 }
 
 button, input, select, textarea{font-family:inherit;}
@@ -81,7 +88,7 @@ button, input, select, textarea{font-family:inherit;}
 
 header{
     background:var(--paper);
-    min-height:70px;
+    min-height:76px;
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -90,44 +97,122 @@ header{
     position:sticky;
     top:0;
     z-index:100;
+    gap:24px;
 }
 
 .logo{
-    font-family:'Anton',sans-serif;
-    font-size:clamp(20px,3vw,26px);
-    letter-spacing:.02em;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    text-decoration:none;
+    flex-shrink:0;
+}
+.logo-mark{
+    width:38px;height:38px;
+    border-radius:50%;
+    background:var(--accent);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+.logo-mark svg{width:20px;height:20px;}
+.logo-text-wrap{display:flex;flex-direction:column;line-height:1;}
+.logo-brand{
+    font-size:22px;
+    font-weight:900;
+    letter-spacing:-.03em;
     color:var(--ink);
 }
+.logo-brand span{color:var(--accent);}
+.logo-tagline{
+    font-size:10.5px;
+    font-weight:600;
+    color:var(--muted);
+    margin-top:3px;
+    letter-spacing:.01em;
+    text-transform:none;
+}
 
-.logo span{color:var(--accent);}
+/* MENU DE NAVEGAÇÃO */
 
-.header-buttons{display:flex;gap:8px;align-items:center;}
+.header-right{display:flex;align-items:center;gap:clamp(16px,3vw,32px);}
+
+.nav-links{display:flex;align-items:center;gap:clamp(14px,2.5vw,30px);}
+.nav-links a{
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+    text-decoration:none;
+    white-space:nowrap;
+    padding:6px 2px;
+    position:relative;
+    transition:.15s ease;
+}
+.nav-links a:hover{color:var(--accent);}
+
+.menu-toggle{
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    gap:5px;
+    width:36px;
+    height:36px;
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:0;
+}
+.menu-toggle span{
+    display:block;
+    width:100%;
+    height:2px;
+    background:var(--ink);
+    border-radius:2px;
+    transition:.2s ease;
+}
+.menu-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.menu-toggle.open span:nth-child(2){opacity:0;}
+.menu-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+.header-buttons{display:flex;gap:10px;align-items:center;}
 
 .btn-login{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
     background:transparent;
-    border:1.5px solid var(--line-strong);
-    padding:9px 16px;
-    border-radius:var(--radius-s);
-    cursor:pointer;
-    font-weight:600;
-    font-size:13.5px;
-    color:var(--ink);
-    white-space:nowrap;
-}
-.btn-login:hover{border-color:var(--ink);}
-
-.btn-register{
-    background:var(--ink);
-    color:var(--paper);
     border:none;
-    padding:10px 16px;
+    padding:9px 8px;
     border-radius:var(--radius-s);
     cursor:pointer;
     font-weight:700;
-    font-size:13.5px;
+    font-size:14px;
+    color:var(--ink);
     white-space:nowrap;
+    transition:.15s ease;
 }
-.btn-register:hover{background:var(--dark-2);}
+.btn-login:hover{color:var(--accent);}
+.btn-login svg{width:16px;height:16px;}
+
+.btn-register{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    padding:11px 18px;
+    border-radius:var(--radius-s);
+    cursor:pointer;
+    font-weight:700;
+    font-size:14px;
+    white-space:nowrap;
+    transition:.15s ease;
+}
+.btn-register:hover{background:var(--accent-dark);}
+.btn-register svg{width:16px;height:16px;}
 
 .btn-register:focus-visible,
 .btn-login:focus-visible,
@@ -142,30 +227,45 @@ textarea:focus-visible{
 /* HERO */
 
 .hero{
-    padding:var(--space-xl) clamp(16px,5vw,40px) var(--space-l);
-    text-align:center;
+    padding:clamp(36px,6vw,72px) clamp(16px,5vw,64px) clamp(40px,6vw,72px);
+    background:linear-gradient(180deg,#F7FAF9 0%, #FFFFFF 100%);
     position:relative;
+    overflow:hidden;
 }
+
+.hero-inner{
+    max-width:1280px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:clamp(28px,4.5vw,56px);
+    align-items:center;
+}
+
+.hero-left{min-width:0;}
 
 .location-pill{
     display:inline-flex;
     align-items:center;
     gap:9px;
-    background:var(--surface);
-    border:1px solid var(--line-strong);
+    background:var(--accent-light);
+    border:1px solid rgba(14,124,102,.18);
     padding:7px 15px;
     border-radius:100px;
-    margin-bottom:clamp(20px,4vw,32px);
-    font-family:'JetBrains Mono',monospace;
-    font-size:11.5px;
-    letter-spacing:.03em;
-    color:var(--muted);
+    margin-bottom:clamp(18px,3vw,26px);
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.01em;
+    color:var(--accent-dark);
     max-width:100%;
     cursor:pointer;
     transition:.15s ease;
 }
-.location-pill:hover{border-color:var(--ink);color:var(--ink);}
-.location-pill.active{border-color:var(--accent);color:var(--accent-dark);}
+.location-pill:hover{background:#DFF0EB;}
+.location-pill.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.location-pill.active .pulse-dot{background:#fff;}
+.location-pill.active .pulse-dot::after{border-color:#fff;}
 .location-pill span.txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 .pulse-dot{
@@ -179,7 +279,7 @@ textarea:focus-visible{
 .pulse-dot::after{
     content:"";
     position:absolute;
-    inset:-6px;
+    inset:-5px;
     border-radius:50%;
     border:1.5px solid var(--accent);
     animation:radar 1.8s ease-out infinite;
@@ -190,136 +290,494 @@ textarea:focus-visible{
 }
 
 .hero h1{
-    font-size:clamp(34px,8vw,64px);
-    margin-bottom:6px;
+    font-size:clamp(40px,7.4vw,76px);
+    font-weight:900;
+    letter-spacing:-.035em;
+    line-height:1.02;
+    margin-bottom:16px;
 }
 .hero h1 .line-2{color:var(--accent);}
 
-.hero p{
+.hero p.lead{
     color:var(--muted);
-    font-size:clamp(14px,2vw,17px);
-    max-width:460px;
-    margin:16px auto clamp(28px,5vw,40px);
+    font-size:clamp(15px,1.8vw,17px);
+    max-width:480px;
+    margin-bottom:clamp(24px,4vw,32px);
     font-weight:500;
+    line-height:1.55;
 }
 
 /* search */
 .search-ticket{
     max-width:640px;
-    margin:auto;
     background:var(--surface);
     padding:6px;
-    border-radius:var(--radius-m);
+    border-radius:999px;
     display:flex;
+    align-items:center;
+    gap:4px;
     position:relative;
-    box-shadow:0 12px 30px rgba(21,24,29,.08);
-    border:1.5px solid var(--line);
+    box-shadow:0 12px 30px rgba(15,26,31,.08);
+    border:1px solid var(--line);
 }
 
+.search-input-wrap{
+    flex:1;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:0 14px;
+    min-width:0;
+}
+.search-input-wrap svg{
+    width:18px;height:18px;
+    color:var(--muted);
+    flex-shrink:0;
+}
 .search-ticket input{
     flex:1;
     min-width:0;
     border:none;
     outline:none;
     background:transparent;
-    padding:15px 14px;
-    font-size:15px;
+    padding:15px 0;
+    font-size:14.5px;
     color:var(--ink);
     font-weight:500;
+    font-family:'Inter',sans-serif;
 }
-.search-ticket input::placeholder{color:#9A9DA3;}
+.search-ticket input::placeholder{color:#9AA0A6;}
+
+.search-location{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:0 14px;
+    border-left:1px solid var(--line);
+    color:var(--muted);
+    font-size:13px;
+    font-weight:600;
+    white-space:nowrap;
+    cursor:pointer;
+    transition:.15s ease;
+}
+.search-location:hover{color:var(--accent-dark);}
+.search-location svg{width:15px;height:15px;color:var(--accent);}
 
 .search-ticket button{
-    background:var(--ink);
-    color:var(--paper);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--accent);
+    color:#fff;
     border:none;
-    padding:0 24px;
-    border-radius:var(--radius-s);
-    font-weight:700;
-    font-size:13.5px;
-    letter-spacing:.03em;
+    padding:14px 24px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:14px;
+    letter-spacing:.01em;
     cursor:pointer;
-    text-transform:uppercase;
     white-space:nowrap;
+    transition:.15s ease;
 }
 .search-ticket button:hover{background:var(--accent-dark);}
+.search-ticket button svg{width:15px;height:15px;}
+
+.hero-features{
+    display:flex;
+    flex-wrap:wrap;
+    gap:clamp(14px,2.6vw,30px);
+    margin-top:22px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink);
+}
+.hero-features span{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+}
+.hero-features span::before{
+    content:"✓";
+    display:inline-flex;
+    width:17px;height:17px;
+    background:var(--accent);
+    color:#fff;
+    border-radius:50%;
+    font-size:10px;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    flex-shrink:0;
+}
+
+/* HERO VISUAL (phone mockup + foto real detrás) */
+.hero-visual{
+    position:relative;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:520px;
+}
+.hero-blob{
+    position:absolute;
+    width:min(480px,90%);
+    aspect-ratio:1;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #D6EDE6 0%, #EAF6F2 45%, transparent 72%);
+    z-index:0;
+}
+
+/* FOTO REAL (mulher) — detrás do telefone */
+.hero-photo{
+    position:absolute;
+    width:min(360px,80%);
+    max-width:100%;
+    aspect-ratio:3 / 4;
+    object-fit:cover;
+    object-position:center top;
+    border-radius:200px 200px 40px 40px;
+    z-index:0;
+    opacity:.95;
+    filter:saturate(.95) contrast(1.02);
+    -webkit-mask-image:linear-gradient(to bottom, black 75%, transparent 100%);
+    mask-image:linear-gradient(to bottom, black 75%, transparent 100%);
+}
+
+.phone{
+    position:relative;
+    z-index:2;
+    width:clamp(220px,22vw,260px);
+    aspect-ratio:9 / 19;
+    background:#0F1A1F;
+    border-radius:34px;
+    padding:8px;
+    box-shadow:0 40px 70px rgba(14,124,102,.22), 0 10px 24px rgba(0,0,0,.12);
+    transform:rotate(-3deg);
+}
+.phone-notch{
+    position:absolute;
+    top:14px;left:50%;
+    transform:translateX(-50%);
+    width:70px;height:16px;
+    background:#0F1A1F;
+    border-radius:12px;
+    z-index:2;
+}
+.phone-screen{
+    background:#fff;
+    height:100%;
+    border-radius:28px;
+    padding:26px 12px 14px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+.phone-brand{display:flex;flex-direction:column;line-height:1;margin-bottom:2px;}
+.phone-brand strong{font-size:14px;font-weight:900;letter-spacing:-.02em;color:var(--ink);}
+.phone-brand strong span{color:var(--accent);}
+.phone-brand em{font-size:8px;color:var(--muted);font-weight:600;font-style:normal;margin-top:2px;}
+
+.phone-search{
+    background:#F4F6F5;
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:10px;
+    color:#9AA0A6;
+    font-weight:500;
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+.phone-search svg{width:11px;height:11px;color:#9AA0A6;}
+
+.phone-loc{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:9.5px;
+    color:var(--muted);
+    font-weight:600;
+    padding:0 2px;
+}
+.phone-loc svg{width:10px;height:10px;color:var(--accent);}
+
+.phone-btn{
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:9px;
+    font-size:10.5px;
+    font-weight:800;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    letter-spacing:.01em;
+}
+.phone-btn svg{width:11px;height:11px;}
+
+.phone-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:6px;
+    margin-top:4px;
+}
+.phone-cat{
+    background:#F4F6F5;
+    border-radius:9px;
+    padding:8px 4px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    font-size:7.5px;
+    font-weight:700;
+    color:var(--ink);
+    text-align:center;
+}
+.phone-cat i{
+    width:20px;height:20px;
+    border-radius:6px;
+    display:flex;
+    align-items:center;justify-content:center;
+    font-style:normal;
+    font-size:11px;
+}
 
 /* CONTAINER / SECTIONS */
 
-.container{width:min(1180px,92%);margin:var(--space-l) auto;}
+.container{width:min(1200px,92%);margin:var(--space-l) auto;}
 
 .section-title{
     display:flex;
     justify-content:space-between;
-    align-items:baseline;
+    align-items:flex-end;
     margin-bottom:var(--space-m);
     gap:14px;
     flex-wrap:wrap;
 }
 
-.section-title h2{font-size:clamp(20px,3vw,26px);}
-
-.section-title .eyebrow{color:var(--muted);}
+.section-title h2{
+    font-size:clamp(24px,3.4vw,34px);
+    font-weight:900;
+    letter-spacing:-.03em;
+}
+.section-title .eyebrow{color:var(--accent);display:block;margin-bottom:6px;}
 
 /* CATEGORIES */
 
 .categories{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(112px,1fr));
-    gap:clamp(8px,1.6vw,14px);
+    grid-template-columns:repeat(3,1fr);
+    gap:clamp(10px,1.4vw,16px);
 }
 
 .category{
-    background:var(--surface);
-    padding:clamp(14px,2.4vw,22px) 8px 16px;
-    text-align:center;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:clamp(14px,2vw,18px) clamp(14px,2vw,20px);
+    background:#fff;
+    border:1.5px solid var(--line);
     border-radius:var(--radius-m);
     cursor:pointer;
-    transition:.16s ease;
-    border:1.5px solid var(--line);
+    transition:.18s ease;
+    text-align:left;
 }
 
-.category:hover{border-color:var(--ink);}
+.category:hover{
+    border-color:var(--accent);
+    box-shadow:0 12px 26px rgba(14,124,102,.10);
+    transform:translateY(-2px);
+}
 
 .category.active{
-    background:var(--ink);
-    color:var(--paper);
-    border-color:var(--ink);
+    border-color:var(--accent);
+    background:var(--accent-light);
 }
 
-.category .icon-ring{
-    width:clamp(36px,6vw,46px);
-    height:clamp(36px,6vw,46px);
-    margin:0 auto 8px;
-    border-radius:50%;
-    background:var(--paper);
+.cat-icon{
+    width:48px;height:48px;
+    border-radius:14px;
+    background:var(--icon-bg,#E8F0FE);
+    color:var(--icon-color,#1967D2);
     display:flex;
     align-items:center;
     justify-content:center;
-    color:var(--ink);
+    flex-shrink:0;
 }
-.category .icon-ring svg{
-    width:clamp(17px,2.8vw,22px);
-    height:clamp(17px,2.8vw,22px);
-}
-.category.active .icon-ring{background:rgba(250,250,248,.12);color:var(--paper);}
+.cat-icon svg{width:24px;height:24px;}
 
-.category p{font-weight:700;font-size:clamp(11.5px,1.6vw,13px);}
+.cat-body{flex:1;min-width:0;}
+
+.category p.cat-name{
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    font-weight:800;
+    color:var(--ink);
+    text-transform:none;
+    letter-spacing:-.01em;
+    margin-bottom:3px;
+    line-height:1.2;
+}
 .category .count{
     display:block;
-    font-family:'JetBrains Mono',monospace;
-    font-size:10px;
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
     color:var(--muted);
-    margin-top:3px;
     font-weight:500;
+    text-transform:none;
+    letter-spacing:0;
 }
-.category.active .count{color:rgba(250,250,248,.55);}
+.category.active .count{color:var(--accent-dark);}
 
-/* RESULTS */
+.cat-chevron{
+    width:18px;height:18px;
+    color:var(--muted);
+    flex-shrink:0;
+    transition:.15s ease;
+}
+.category:hover .cat-chevron,
+.category.active .cat-chevron{color:var(--accent-dark);transform:translateX(2px);}
+
+/* COMO FUNCIONA */
+
+.how-it-works{
+    background:var(--accent-light);
+    padding:clamp(48px,7vw,80px) clamp(16px,5vw,64px);
+    margin-top:var(--space-xl);
+}
+.hiw-inner{
+    max-width:1200px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:.9fr 1.4fr;
+    gap:clamp(28px,5vw,64px);
+    align-items:center;
+}
+.hiw-left .eyebrow{display:block;margin-bottom:10px;}
+.hiw-left h2{
+    font-size:clamp(26px,3.4vw,38px);
+    margin-bottom:14px;
+    color:var(--ink);
+}
+.hiw-left p{
+    color:#3F4A4F;
+    font-size:15px;
+    font-weight:500;
+    margin-bottom:22px;
+    max-width:360px;
+}
+.btn-green{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    padding:13px 22px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:14px;
+    cursor:pointer;
+    transition:.15s ease;
+}
+.btn-green:hover{background:var(--accent-dark);}
+.btn-green svg{width:16px;height:16px;}
+
+.hiw-steps{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:clamp(14px,2vw,24px);
+    position:relative;
+}
+.hiw-step{
+    text-align:center;
+    position:relative;
+    padding:0 6px;
+}
+.hiw-step-arrow{
+    position:absolute;
+    top:26px;right:-22px;
+    width:36px;height:14px;
+    color:var(--accent);
+    opacity:.6;
+}
+.hiw-step:last-child .hiw-step-arrow{display:none;}
+
+.step-num{
+    width:32px;height:32px;
+    background:var(--accent);
+    color:#fff;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    font-size:14px;
+    margin:0 auto 8px;
+    position:relative;
+    z-index:1;
+}
+.step-icon{
+    width:58px;height:58px;
+    border-radius:50%;
+    background:#fff;
+    color:var(--accent);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 12px;
+    box-shadow:0 6px 16px rgba(14,124,102,.12);
+}
+.step-icon svg{width:26px;height:26px;}
+.hiw-step h4{
+    font-size:15.5px;
+    font-weight:800;
+    margin-bottom:6px;
+    text-transform:none;
+    letter-spacing:-.01em;
+}
+.hiw-step p{
+    font-size:12.5px;
+    color:#3F4A4F;
+    font-weight:500;
+    line-height:1.5;
+}
+
+/* LOCATION FILTER / RESULTS / MAP */
+
+.filters-block{
+    margin-top:var(--space-l);
+}
+.location-filter{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:var(--space-m);
+}
+.location-filter select{
+    flex:1;
+    min-width:180px;
+    padding:13px 16px;
+    border-radius:var(--radius-s);
+    border:1.5px solid var(--line-strong);
+    background:var(--surface);
+    color:var(--ink);
+    font-size:14px;
+    font-weight:600;
+    outline:none;
+    cursor:pointer;
+}
+.location-filter select:focus{border-color:var(--accent);}
+.location-filter select:disabled{opacity:0.5;cursor:not-allowed;}
 
 .results{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));
+    grid-template-columns:repeat(auto-fit,minmax(min(290px,100%),1fr));
     gap:var(--space-s);
 }
 
@@ -328,29 +786,30 @@ textarea:focus-visible{
     border-radius:var(--radius-m);
     overflow:hidden;
     border:1px solid var(--line);
-    transition:.16s ease;
+    transition:.18s ease;
 }
 .business:hover{
-    border-color:var(--line-strong);
-    box-shadow:0 14px 30px rgba(21,24,29,.07);
+    border-color:var(--accent);
+    box-shadow:0 16px 34px rgba(14,124,102,.10);
+    transform:translateY(-2px);
 }
 
 .business-cover{
     height:64px;
-    background:var(--dark);
+    background:linear-gradient(135deg, #0F1A1F 0%, #14352E 100%);
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:0 16px;
+    padding:0 18px;
 }
 
 .badge{
-    font-family:'JetBrains Mono',monospace;
+    font-family:'Inter',sans-serif;
     background:transparent;
-    color:var(--paper);
+    color:#fff;
     padding:5px 0;
-    font-size:10.5px;
-    font-weight:700;
+    font-size:11px;
+    font-weight:800;
     letter-spacing:.06em;
     display:inline-flex;
     align-items:center;
@@ -359,31 +818,34 @@ textarea:focus-visible{
 .badge.featured{color:#7EEBCB;}
 
 .rating-tag{
-    font-family:'JetBrains Mono',monospace;
-    color:var(--paper);
-    font-size:12px;
-    font-weight:700;
+    font-family:'Inter',sans-serif;
+    color:#fff;
+    font-size:13px;
+    font-weight:800;
 }
 
 .business-content{padding:18px 20px 20px;}
 
 .business h3{
-    font-size:clamp(16px,2.4vw,19px);
+    font-size:19px;
+    font-weight:800;
     margin-bottom:9px;
-    letter-spacing:0;
+    letter-spacing:-.02em;
+    text-transform:none;
 }
 
 .location-text{
-    font-family:'JetBrains Mono',monospace;
+    font-family:'Inter',sans-serif;
     color:var(--muted);
-    font-size:12px;
+    font-size:12.5px;
     margin-bottom:11px;
+    font-weight:600;
 }
 
 .business-content > p.desc{
     color:#4A4E55;
     font-size:13.5px;
-    line-height:1.5;
+    line-height:1.55;
     margin-bottom:17px;
 }
 
@@ -395,11 +857,12 @@ textarea:focus-visible{
     border-radius:var(--radius-s);
     border:none;
     cursor:pointer;
-    font-weight:700;
+    font-weight:800;
     font-size:13px;
+    transition:.15s ease;
 }
 
-.profile-btn{background:var(--paper);border:1.5px solid var(--line-strong);color:var(--ink);}
+.profile-btn{background:var(--bg-soft);border:1.5px solid var(--line-strong);color:var(--ink);}
 .profile-btn:hover{border-color:var(--ink);}
 
 .whatsapp-btn{background:var(--accent);color:#fff;}
@@ -410,32 +873,32 @@ textarea:focus-visible{
     text-align:center;
     padding:48px 20px;
     color:var(--muted);
-    font-family:'JetBrains Mono',monospace;
-    font-size:12.5px;
+    font-size:13px;
+    font-weight:600;
 }
 
 /* AVALIAÇÕES */
 
 .star-input{font-size:26px;letter-spacing:4px;cursor:pointer;user-select:none;}
 .star-input .star{color:var(--line-strong);transition:.1s;}
-.star-input .star.filled{color:var(--amber,#E2A63B);}
+.star-input .star.filled{color:var(--amber);}
 
 .review-item{
     border-bottom:1px solid var(--line);
     padding:10px 0;
 }
 .review-item:last-child{border-bottom:none;}
-.review-stars{color:#E2A63B;font-size:13px;letter-spacing:1px;}
+.review-stars{color:var(--amber);font-size:13px;letter-spacing:1px;}
 .review-comment{font-size:13px;color:#4A4E55;margin-top:3px;}
-.review-date{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);margin-top:4px;}
+.review-date{font-size:10.5px;color:var(--muted);margin-top:4px;font-weight:600;}
 
 /* VIEW TOGGLE + MAP */
 
 .view-toggle{
     display:inline-flex;
-    background:var(--surface);
+    background:var(--bg-soft);
     border:1.5px solid var(--line);
-    border-radius:var(--radius-s);
+    border-radius:999px;
     padding:3px;
     gap:3px;
 }
@@ -443,104 +906,304 @@ textarea:focus-visible{
     border:none;
     background:transparent;
     cursor:pointer;
-    padding:7px 14px;
-    border-radius:6px;
+    padding:8px 18px;
+    border-radius:999px;
     font-weight:700;
-    font-size:12.5px;
+    font-size:13px;
     color:var(--muted);
+    transition:.15s ease;
 }
-.view-toggle button.active{background:var(--ink);color:var(--paper);}
+.view-toggle button.active{background:var(--accent);color:#fff;}
 
-.location-filter{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-}
-.location-filter select{
-    flex:1;
-    min-width:160px;
-    padding:12px 14px;
-    border-radius:var(--radius-s);
-    border:1.5px solid var(--line-strong);
-    background:var(--surface);
-    color:var(--ink);
-    font-size:13.5px;
-    font-weight:600;
-    outline:none;
-}
-.location-filter select:focus{border-color:var(--accent);}
-.location-filter select:disabled{opacity:0.5;}
-
-#mapView{display:none;}
+#mapView{display:none;margin-top:var(--space-m);}
 #mapView.active{display:block;}
 #leafletMap{
-    height:440px;
+    height:460px;
     border-radius:var(--radius-m);
     border:1px solid var(--line);
     overflow:hidden;
 }
 .leaflet-popup-content{font-family:'Inter',sans-serif;}
-.map-popup h4{font-size:14px;margin-bottom:4px;font-family:'Inter',sans-serif;font-weight:700;text-transform:none;}
+.map-popup h4{font-size:14px;margin-bottom:4px;font-family:'Inter',sans-serif;font-weight:800;text-transform:none;}
 .map-popup p{font-size:12px;color:var(--muted);margin-bottom:6px;}
-.map-popup a{font-size:12px;font-weight:700;color:var(--accent-dark);}
+.map-popup a{font-size:12px;font-weight:800;color:var(--accent-dark);}
 
-/* PRECISO AGORA */
+/* POR QUE ESCOLHER */
+
+.why-section{
+    margin-top:var(--space-xl);
+}
+.why-head{max-width:600px;margin-bottom:var(--space-m);}
+.why-head .eyebrow{display:block;margin-bottom:8px;}
+.why-head h2{
+    font-size:clamp(26px,3.4vw,38px);
+    margin-bottom:10px;
+}
+.why-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:clamp(10px,1.4vw,16px);
+}
+.why-card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:clamp(18px,2.4vw,24px) clamp(16px,2.2vw,22px);
+    transition:.18s ease;
+}
+.why-card:hover{
+    border-color:var(--accent);
+    box-shadow:0 12px 26px rgba(14,124,102,.08);
+    transform:translateY(-2px);
+}
+.why-icon{
+    width:44px;height:44px;
+    border-radius:12px;
+    background:var(--accent-light);
+    color:var(--accent);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:14px;
+}
+.why-icon svg{width:22px;height:22px;}
+.why-card h4{
+    font-size:16px;
+    font-weight:800;
+    margin-bottom:6px;
+    text-transform:none;
+    letter-spacing:-.01em;
+}
+.why-card p{
+    font-size:13px;
+    color:var(--muted);
+    font-weight:500;
+    line-height:1.5;
+}
+
+/* CTA (GREEN BANNER) */
 
 .cta{
     margin-top:var(--space-xl);
-    background:var(--urgent);
+    background:linear-gradient(120deg, #0B4A3D 0%, #0E7C66 55%, #16A085 100%);
     color:#fff;
-    padding:var(--space-l) clamp(18px,4vw,25px);
-    text-align:center;
-    border-radius:var(--radius-l);
+    padding:clamp(36px,5vw,56px) clamp(24px,4vw,48px);
+    border-radius:var(--radius-xl);
+    position:relative;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:1.3fr 1fr;
+    gap:clamp(24px,4vw,48px);
+    align-items:center;
 }
-
-.cta h2{font-size:clamp(22px,4vw,30px);margin-bottom:11px;}
-
+.cta::before{
+    content:"";
+    position:absolute;
+    right:-80px;bottom:-120px;
+    width:420px;height:420px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(255,255,255,.16) 0%, transparent 65%);
+    pointer-events:none;
+}
+.cta-text{position:relative;z-index:1;}
+.cta h2{
+    font-size:clamp(24px,3.6vw,38px);
+    margin-bottom:12px;
+    color:#fff;
+    letter-spacing:-.03em;
+}
 .cta p{
-    color:rgba(255,255,255,.86);
+    color:rgba(255,255,255,.88);
     margin-bottom:24px;
     font-weight:500;
-    max-width:440px;
-    margin-left:auto;
-    margin-right:auto;
-    font-size:clamp(13.5px,2vw,15px);
+    font-size:clamp(14px,1.7vw,16px);
+    max-width:460px;
+}
+.cta button{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    background:#fff;
+    color:var(--accent-dark);
+    border:none;
+    padding:15px 30px;
+    border-radius:999px;
+    font-weight:800;
+    cursor:pointer;
+    font-size:14.5px;
+    letter-spacing:.01em;
+    transition:.15s ease;
+}
+.cta button:hover{background:#F2FBF8;transform:translateY(-1px);}
+.cta button svg{width:16px;height:16px;}
+
+.cta-features{
+    display:flex;
+    flex-wrap:wrap;
+    gap:clamp(12px,2.2vw,24px);
+    margin-top:22px;
+    font-size:12.5px;
+    font-weight:700;
+    color:rgba(255,255,255,.92);
+    position:relative;
+    z-index:1;
+}
+.cta-features span{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+}
+.cta-features span::before{
+    content:"✓";
+    display:inline-flex;
+    width:15px;height:15px;
+    background:rgba(255,255,255,.22);
+    border:1.5px solid rgba(255,255,255,.4);
+    color:#fff;
+    border-radius:50%;
+    font-size:9px;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
 }
 
-.cta button{
-    background:var(--dark-2);
-    color:#fff;
-    border:none;
-    padding:14px 28px;
-    border-radius:var(--radius-s);
-    font-weight:700;
-    cursor:pointer;
-    font-size:13.5px;
-    letter-spacing:.02em;
-    text-transform:uppercase;
+.cta-visual{
+    position:relative;
+    z-index:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
-.cta button:hover{background:#000;}
+
+/* FOTO REAL (homem) — detrás do mini-telefone */
+.cta-photo{
+    position:absolute;
+    width:min(280px,80%);
+    max-width:100%;
+    aspect-ratio:3 / 4;
+    object-fit:cover;
+    object-position:center top;
+    border-radius:120px 120px 24px 24px;
+    z-index:0;
+    opacity:.85;
+    filter:saturate(.9) contrast(1.05) brightness(.95);
+    -webkit-mask-image:linear-gradient(to bottom, black 70%, transparent 100%);
+    mask-image:linear-gradient(to bottom, black 70%, transparent 100%);
+}
+
+.cta-phone{
+    position:relative;
+    z-index:2;
+    width:clamp(160px,16vw,200px);
+    aspect-ratio:9 / 17;
+    background:#0A1418;
+    border-radius:26px;
+    padding:6px;
+    box-shadow:0 30px 60px rgba(0,0,0,.28);
+    transform:rotate(4deg);
+}
+.cta-phone-screen{
+    background:linear-gradient(180deg, #EAF6F2 0%, #FFFFFF 100%);
+    height:100%;
+    border-radius:22px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    padding:14px;
+    text-align:center;
+}
+.cta-phone-screen svg{
+    width:44px;height:44px;
+    color:var(--accent);
+}
+.cta-phone-screen strong{
+    font-size:12px;
+    font-weight:800;
+    color:var(--ink);
+    letter-spacing:-.01em;
+}
+.cta-phone-screen em{
+    font-style:normal;
+    font-size:10px;
+    color:var(--muted);
+    font-weight:600;
+}
 
 /* FOOTER */
 
 footer{
     margin-top:var(--space-xl);
-    background:var(--dark-2);
-    color:rgba(250,250,248,.6);
-    padding:var(--space-l) clamp(16px,5vw,64px);
+    background:var(--paper);
+    color:var(--muted);
+    padding:var(--space-l) clamp(16px,5vw,64px) var(--space-m);
+    border-top:1px solid var(--line);
+}
+.footer-inner{
+    max-width:1200px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:1.2fr 1fr 1fr;
+    gap:clamp(20px,3vw,40px);
+    align-items:center;
+    padding-bottom:24px;
+    border-bottom:1px solid var(--line);
+}
+.footer-brand{display:flex;align-items:center;gap:10px;}
+.footer-brand .logo-mark{background:var(--accent);}
+.footer-brand .logo-brand{font-size:20px;color:var(--ink);}
+.footer-brand .logo-brand span{color:var(--accent);}
+.footer-brand small{
+    display:block;
+    font-size:11px;
+    color:var(--muted);
+    font-weight:600;
+    margin-top:2px;
+    letter-spacing:.01em;
+}
+
+.footer-links{
+    display:flex;
+    gap:clamp(14px,2.5vw,28px);
+    flex-wrap:wrap;
+    justify-content:center;
+}
+.footer-links a{
+    color:var(--muted);
+    font-size:13.5px;
+    font-weight:600;
+    text-decoration:none;
+    transition:.15s ease;
+}
+.footer-links a:hover{color:var(--accent-dark);}
+
+.footer-social{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+}
+.footer-social a{
+    width:36px;height:36px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--muted);
+    text-decoration:none;
+    transition:.15s ease;
+}
+.footer-social a:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.footer-social svg{width:16px;height:16px;}
+
+.footer-fine{
+    max-width:1200px;
+    margin:20px auto 0;
+    font-size:11.5px;
+    color:var(--muted);
+    font-weight:500;
     text-align:center;
-}
-footer strong{
-    font-family:'Anton',sans-serif;
-    color:var(--paper);
-    font-size:20px;
-    letter-spacing:.02em;
-}
-footer .fine{
-    font-family:'JetBrains Mono',monospace;
-    font-size:10.5px;
-    margin-top:13px;
-    color:rgba(250,250,248,.35);
 }
 
 /* MODAL */
@@ -549,7 +1212,8 @@ footer .fine{
     display:none;
     position:fixed;
     inset:0;
-    background:rgba(21,24,29,.5);
+    background:rgba(15,26,31,.55);
+    backdrop-filter:blur(2px);
     z-index:1000;
     align-items:center;
     justify-content:center;
@@ -559,22 +1223,24 @@ footer .fine{
 
 .modal{
     background:var(--surface);
-    max-width:420px;
+    max-width:440px;
     width:100%;
     max-height:90vh;
     overflow-y:auto;
     border-radius:var(--radius-m);
-    padding:clamp(22px,4vw,28px) clamp(20px,4vw,26px);
+    padding:clamp(22px,4vw,30px) clamp(20px,4vw,28px);
     position:relative;
-    border-top:3px solid var(--accent);
+    border-top:4px solid var(--accent);
+    box-shadow:0 30px 60px rgba(0,0,0,.25);
 }
 
-.modal h3{font-size:20px;margin-bottom:6px;}
+.modal h3{font-size:22px;margin-bottom:8px;font-weight:900;letter-spacing:-.02em;}
 .modal .modal-sub{
-    font-size:13px;
+    font-size:13.5px;
     color:var(--muted);
     margin-bottom:18px;
     font-weight:500;
+    line-height:1.5;
 }
 
 .modal-close{
@@ -587,86 +1253,144 @@ footer .fine{
     cursor:pointer;
     color:var(--ink);
     line-height:1;
+    width:32px;height:32px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    transition:.15s ease;
 }
+.modal-close:hover{background:var(--bg-soft);}
 
 .field{margin-bottom:14px;}
 .field label{
     display:block;
-    font-family:'JetBrains Mono',monospace;
-    font-size:10.5px;
+    font-size:11px;
     text-transform:uppercase;
-    letter-spacing:.05em;
+    letter-spacing:.08em;
     margin-bottom:6px;
     color:#4A4E55;
+    font-weight:800;
 }
 .field input, .field select, .field textarea{
     width:100%;
-    padding:11px 12px;
+    padding:12px 14px;
     border-radius:var(--radius-s);
     border:1.5px solid var(--line-strong);
     background:var(--paper);
     font-size:14px;
     color:var(--ink);
     outline:none;
+    font-weight:500;
+    transition:.15s ease;
 }
 .field textarea{resize:vertical;min-height:80px;}
-.field input:focus, .field select:focus, .field textarea:focus{border-color:var(--accent);}
+.field input:focus, .field select:focus, .field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(14,124,102,.12);}
 
 .modal-submit{
     width:100%;
-    background:var(--ink);
-    color:var(--paper);
+    background:var(--accent);
+    color:#fff;
     border:none;
-    padding:13px;
+    padding:14px;
     border-radius:var(--radius-s);
-    font-weight:700;
+    font-weight:800;
     cursor:pointer;
     margin-top:6px;
     font-size:14px;
+    transition:.15s ease;
 }
-.modal-submit:hover{background:var(--dark-2);}
+.modal-submit:hover{background:var(--accent-dark);}
 
 .btn-locate{
     width:100%;
     background:var(--paper);
     border:1.5px dashed var(--line-strong);
     color:var(--ink);
-    padding:11px;
+    padding:12px;
     border-radius:var(--radius-s);
     font-weight:700;
     cursor:pointer;
     font-size:13px;
     margin-bottom:14px;
+    transition:.15s ease;
 }
 .btn-locate:hover{border-color:var(--accent);color:var(--accent-dark);}
-.btn-locate.captured{border-style:solid;border-color:var(--accent);color:var(--accent-dark);background:#EAF6F2;}
+.btn-locate.captured{border-style:solid;border-color:var(--accent);color:var(--accent-dark);background:var(--accent-light);}
 
 .modal-success{text-align:center;padding:10px 0 4px;}
 .modal-success .check{
-    width:50px;height:50px;border-radius:50%;
+    width:56px;height:56px;border-radius:50%;
     background:var(--accent);color:#fff;
     display:flex;align-items:center;justify-content:center;
-    font-size:24px;margin:0 auto 16px;
+    font-size:26px;margin:0 auto 16px;
+    font-weight:900;
 }
 .modal-success p{font-size:14px;color:#4A4E55;}
 
-/* RESPONSIVE — fluid by default via clamp(); breakpoints handle layout shape */
+/* RESPONSIVE */
+
+@media(max-width:1024px){
+    .hero-inner{grid-template-columns:1fr;}
+    .hero-visual{min-height:420px;order:-1;margin-bottom:8px;}
+    .hero-visual .phone{width:200px;}
+    .hero-photo{width:min(300px,70%);}
+    .hiw-inner{grid-template-columns:1fr;gap:32px;}
+    .hiw-left p{max-width:none;}
+    .hiw-steps{grid-template-columns:1fr 1fr 1fr;gap:14px;}
+    .why-grid{grid-template-columns:repeat(2,1fr);}
+    .cta{grid-template-columns:1fr;}
+    .cta-visual{display:none;}
+}
 
 @media(max-width:900px){
-    .categories{grid-template-columns:repeat(4,1fr);}
+    .categories{grid-template-columns:repeat(2,1fr);}
+    .footer-inner{grid-template-columns:1fr;text-align:center;gap:22px;}
+    .footer-brand{justify-content:center;}
+    .footer-social{justify-content:center;}
+    .nav-links{display:none;}
 }
 
 @media(max-width:640px){
-    .categories{grid-template-columns:repeat(3,1fr);}
-    .search-ticket{flex-direction:column;gap:6px;}
-    .search-ticket input{padding:14px;}
-    .search-ticket button{padding:14px;}
-    .header-buttons{gap:6px;}
-    .header-buttons button{padding:8px 10px;font-size:12px;}
+    .categories{grid-template-columns:1fr;}
+    .hiw-steps{grid-template-columns:1fr;gap:26px;}
+    .hiw-step-arrow{display:none;}
+    .why-grid{grid-template-columns:1fr;}
+    .search-ticket{flex-direction:column;border-radius:var(--radius-m);padding:10px;}
+    .search-ticket input{padding:14px 0;}
+    .search-input-wrap{padding:0 6px;}
+    .search-location{border-left:none;border-top:1px solid var(--line);padding:10px 6px;width:100%;}
+    .search-ticket button{width:100%;justify-content:center;padding:15px;}
+
+    .menu-toggle{display:flex;}
+    .header-right{
+        position:fixed;
+        top:76px;
+        left:0;right:0;
+        background:var(--paper);
+        border-bottom:1px solid var(--line);
+        flex-direction:column;
+        align-items:stretch;
+        gap:16px;
+        padding:20px clamp(16px,5vw,64px) 24px;
+        display:none;
+        box-shadow:0 12px 24px rgba(15,26,31,.08);
+        z-index:99;
+        max-height:calc(100vh - 76px);
+        overflow-y:auto;
+    }
+    .header-right.open{display:flex;}
+    .nav-links{display:flex;flex-direction:column;align-items:flex-start;gap:14px;}
+    .header-buttons{flex-direction:column;align-items:stretch;gap:8px;}
+    .header-buttons button{width:100%;padding:13px;font-size:14px;justify-content:center;}
+
+    .hero{padding-left:clamp(16px,5vw,40px);padding-right:clamp(16px,5vw,40px);}
+    .hero h1{font-size:clamp(34px,9vw,52px);}
+    .hero-visual{min-height:320px;}
+    .hero-visual .phone{width:170px;}
+    .hero-photo{width:min(260px,65%);}
 }
 
 @media(max-width:400px){
-    .categories{grid-template-columns:repeat(2,1fr);}
+    .hero-visual{display:none;}
 }
 
 </style>
@@ -674,75 +1398,233 @@ footer .fine{
 
 <body>
 
-<header>
-    <div class="logo">ACHOU<span>+</span></div>
-    <div class="header-buttons">
-        <button class="btn-login" id="btnPlano" style="display:none;" onclick="abrirPlano()">Meu plano</button>
-        <button class="btn-login" onclick="openModal('login')">Entrar</button>
-        <button class="btn-register" onclick="openModal('register')">Cadastrar empresa</button>
+<header id="siteHeader">
+    <a href="#top" class="logo">
+        <span class="logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </span>
+        <span class="logo-text-wrap">
+            <span class="logo-brand">ACHOU<span>+</span></span>
+            <span class="logo-tagline">Serviços perto de você</span>
+        </span>
+    </a>
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" onclick="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+    </button>
+
+    <div class="header-right" id="headerRight">
+        <nav class="nav-links" aria-label="Navegação principal">
+            <a href="#top" onclick="closeMobileMenu()">Início</a>
+            <a href="#categories" onclick="closeMobileMenu()">Categorias</a>
+            <a href="#como-funciona" onclick="closeMobileMenu()">Como funciona</a>
+            <a href="#sobre" onclick="closeMobileMenu()">Sobre nós</a>
+        </nav>
+        <div class="header-buttons">
+            <button class="btn-login" id="btnPlano" style="display:none;" onclick="abrirPlano()">Meu plano</button>
+            <button class="btn-login" onclick="openModal('login')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Entrar
+            </button>
+            <button class="btn-register" onclick="openModal('register')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9"/><path d="M3 9h18"/><path d="M9 22V12h6v10"/></svg>
+                Cadastrar empresa
+            </button>
+        </div>
     </div>
 </header>
 
 
-<section class="hero">
+<section class="hero" id="top">
+    <div class="hero-inner">
 
-    <button class="location-pill" id="locationPill" onclick="requestLocation()">
-        <span class="pulse-dot"></span>
-        <span class="txt" id="locationText">ATIVAR MINHA LOCALIZAÇÃO</span>
-    </button>
+        <div class="hero-left">
 
-    <h1>PRECISOU?<br><span class="line-2">ACHOU.</span></h1>
+            <button class="location-pill" id="locationPill" onclick="requestLocation()">
+                <span class="pulse-dot"></span>
+                <span class="txt" id="locationText">ATIVAR MINHA LOCALIZAÇÃO</span>
+            </button>
 
-    <p>Descreva o que você precisa e veja quem pode te atender agora, perto de você.</p>
+            <h1>Precisou?<br><span class="line-2">ACHOU.</span></h1>
 
-    <div class="search-ticket">
-        <input id="searchInput" type="text" placeholder="O que você precisa? Ex: conserto de celular" onkeyup="searchBusiness(event)">
-        <button onclick="searchBusiness()">Buscar</button>
+            <p class="lead">Conectamos você aos melhores profissionais e empresas da sua região.</p>
+
+            <div class="search-ticket">
+                <div class="search-input-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input id="searchInput" type="text" placeholder="O que você precisa? Ex: conserto de celular" onkeyup="searchBusiness(event)">
+                </div>
+                <div class="search-location" onclick="requestLocation()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span>Sua cidade</span>
+                </div>
+                <button onclick="searchBusiness()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <span>Buscar</span>
+                </button>
+            </div>
+
+            <div class="hero-features">
+                <span>Rápido</span>
+                <span>Seguro</span>
+                <span>Confiável</span>
+                <span>Com avaliações</span>
+            </div>
+
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+            <div class="hero-blob"></div>
+
+            <!-- FOTO REAL: mulher com telefone (atrás do mockup) -->
+            <img class="hero-photo"
+                 src="https://images.pexels.com/photos/35390360/pexels-photo-35390360.jpeg?auto=compress&cs=tinysrgb&w=800"
+                 alt="Mulher usando smartphone ao ar livre"
+                 loading="lazy">
+
+            <div class="phone">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+
+                    <div class="phone-brand">
+                        <strong>ACHOU<span>+</span></strong>
+                        <em>Serviços perto de você</em>
+                    </div>
+
+                    <div class="phone-search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        O que você precisa?
+                    </div>
+
+                    <div class="phone-loc">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        Sua cidade
+                    </div>
+
+                    <button class="phone-btn" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        Buscar
+                    </button>
+
+                    <div class="phone-grid">
+                        <div class="phone-cat"><i style="background:#E8F0FE;color:#1967D2;">📱</i><span>Celulares</span></div>
+                        <div class="phone-cat"><i style="background:#F3E5F5;color:#7B1FA2;">💻</i><span>Informática</span></div>
+                        <div class="phone-cat"><i style="background:#FFEBEE;color:#D32F2F;">🚗</i><span>Automóveis</span></div>
+                        <div class="phone-cat"><i style="background:#FFF8E1;color:#F9A825;">🏠</i><span>Casa</span></div>
+                        <div class="phone-cat"><i style="background:#FCE4EC;color:#C2185B;">✂️</i><span>Beleza</span></div>
+                        <div class="phone-cat"><i style="background:#FBE9E7;color:#E64A19;">🍴</i><span>Alimentação</span></div>
+                        <div class="phone-cat"><i style="background:#E0F2F1;color:#00796B;">🐾</i><span>Pets</span></div>
+                        <div class="phone-cat"><i style="background:#E8EAF6;color:#3949AB;">🏗️</i><span>Construção</span></div>
+                        <div class="phone-cat"><i style="background:#E8F5E9;color:#388E3C;">🏋️</i><span>Academia</span></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
     </div>
-
 </section>
 
 
-<div class="container">
+<div class="container" id="categories" style="scroll-margin-top:90px;">
 
     <div class="section-title">
-        <h2>Categorias</h2>
-        <span class="eyebrow">9 ÁREAS ATIVAS · TOQUE PARA FILTRAR</span>
+        <div>
+            <span class="eyebrow">Categorias</span>
+            <h2>Encontre por categoria</h2>
+        </div>
+        <span class="eyebrow" style="color:var(--muted);">9 ÁREAS ATIVAS · TOQUE PARA FILTRAR</span>
     </div>
 
-    <div class="categories" id="categories">
+    <div class="categories">
         <div class="category" data-cat="Celulares" onclick="filterCategory('Celulares', this)">
-            <div class="icon-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.2"/><line x1="11" y1="18.3" x2="13" y2="18.3"/></svg></div><p>Celulares</p><span class="count" data-count-for="Celulares">—</span>
+            <div class="cat-icon" style="--icon-bg:#E8F0FE;--icon-color:#1967D2;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.2"/><line x1="11" y1="18.3" x2="13" y2="18.3"/></svg></div>
+            <div class="cat-body">
+                <p class="cat-name">Celulares</p>
+                <span class="count" data-count-for="Celulares">—</span>
+            </div>
+            <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+
         <div class="category" data-cat="Informática" onclick="filterCategory('Informática', this)">
-            <div class="icon-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.4"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="9" y1="20" x2="9" y2="16.5"/><line x1="15" y1="20" x2="15" y2="16.5"/></svg></div><p>Informática</p><span class="count" data-count-for="Informática">—</span>
+            <div class="cat-icon" style="--icon-bg:#F3E5F5;--icon-color:#7B1FA2;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.4"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="9" y1="20" x2="9" y2="16.5"/><line x1="15" y1="20" x2="15" y2="16.5"/></svg></div>
+            <div class="cat-body">
+                <p class="cat-name">Informática</p>
+                <span class="count" data-count-for="Informática">—</span>
+            </div>
+            <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+
         <div class="category" data-cat="Automóveis" onclick="filterCategory('Automóveis', this)">
-            <div class="icon-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13l1.6-5.2A2 2 0 0 1 7 6.4h10a2 2 0 0 1 1.9 1.4l1.6 5.2"/><rect x="2.2" y="13" width="19.6" height="5.6" rx="1.6"/><circle cx="7" cy="18.8" r="1.5"/><circle cx="17" cy="18.8" r="1.5"/></svg></div><p>Automóveis</p><span class="count" data-count-for="Automóveis">—</span>
+            <div class="cat-icon" style="--icon-bg:#FFEBEE;--icon-color:#D32F2F;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13l1.6-5.2A2 2 0 0 1 7 6.4h10a2 2 0 0 1 1.9 1.4l1.6 5.2"/><rect x="2.2" y="13" width="19.6" height="5.6" rx="1.6"/><circle cx="7" cy="18.8" r="1.5"/><circle cx="17" cy="18.8" r="1.5"/></svg></div>
+            <div class="cat-body">
+                <p class="cat-name">Automóveis</p>
+                <span class="count" data-count-for="Automóveis">—</span>
+            </div>
+            <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+
         <div class="category" data-cat="Casa" onclick="filterCategory('Casa', this)">
-            <div class="icon-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9.2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V10"/><line x1="10" y1="20" x2="10" y2="14.5"/><line x1="14" y1="20" x2="14" y2="14.5"/></svg></div><p>Casa</p><span class="count" data-count-for="Casa">—</span>
+            <div class="cat-icon" style="--icon-bg:#FFF8E1;--icon-color:#F9A825;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9.2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V10"/><line x1="10" y1="20" x2="10" y2="14.5"/><line x1="14" y1="20" x2="14" y2="14.5"/></svg></div>
+            <div class="cat-body">
+                <p class="cat-name">Casa</p>
+                <span class="count" data-count-for="Casa">—</span>
+            </div>
+            <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+
         <div class="category" data-cat="Beleza" onclick="filterCategory('Beleza', this)">
-            <div class="icon-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6.2" r="2.3"/><circle cx="6" cy="17.8" r="2.3"/><line x1="7.8" y1="7.6" x2="20" y2="17.5"/><line x1="7.8" y1="16.4" x2="20" y2="6.5"/></svg></div><p>Beleza</p><span class="count" data-count-for="Beleza">—</span>
+            <div class="cat-icon" style="--icon-bg:#FCE4EC;--icon-color:#C2185B;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6.2" r="2.3"/><circle cx="6" cy="17.8" r="2.3"/><line x1="7.8" y1="7.6" x2="20" y2="17.5"/><line x1="7.8" y1="16.4" x2="20" y2="6.5"/></svg></div>
+            <div class="cat-body">
+                <p class="cat-name">Beleza</p>
+                <span class="count" data-count-for="Beleza">—</span>
+            </div>
+            <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+
         <div class="category" data-cat="Alimentação" onclick="filterCategory('Alimentação', this)">
-            <div class="icon-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2.5v7.2a2 2 0 0 0 4 0V2.5"/><line x1="7" y1="9.7" x2="7" y2="21.5"/><path d="M18 2.5c-1.8 0-3.2 2.5-3.2 6s1.4 5.5 3.2 5.5"/><line x1="18" y1="14" x2="18" y2="21.5"/></svg></div><p>Alimentação</p><span class="count" data-count-for="Alimentação">—</span>
+            <div class="cat-icon" style="--icon-bg:#FBE9E7;--icon-color:#E64A19;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2.5v7.2a2 2 0 0 0 4 0V2.5"/><line x1="7" y1="9.7" x2="7" y2="21.5"/><path d="M18 2.5c-1.8 0-3.2 2.5-3.2 6s1.4 5.5 3.2 5.5"/><line x1="18" y1="14" x2="18" y2="21.5"/></svg></div>
+            <div class="cat-body">
+                <p class="cat-name">Alimentação</p>
+                <span class="count" data-count-for="Alimentação">—</span>
+            </div>
+            <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+
         <div class="category" data-cat="Pets" onclick="filterCategory('Pets', this)">
-            <div class="icon-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7.5" r="1.7"/><circle cx="13.5" cy="5.5" r="1.7"/><circle cx="18.5" cy="9.5" r="1.7"/><circle cx="4" cy="12.5" r="1.7"/><path d="M12 21.2c-3 0-5.2-1.9-5.2-4.4 0-2.1 1.8-3.7 3.6-5 .8-.6 1.3-1.4 1.6-2.2.3.8.8 1.6 1.6 2.2 1.8 1.3 3.6 2.9 3.6 5 0 2.5-2.2 4.4-5.2 4.4z"/></svg></div><p>Pets</p><span class="count" data-count-for="Pets">—</span>
+            <div class="cat-icon" style="--icon-bg:#E0F2F1;--icon-color:#00796B;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7.5" r="1.7"/><circle cx="13.5" cy="5.5" r="1.7"/><circle cx="18.5" cy="9.5" r="1.7"/><circle cx="4" cy="12.5" r="1.7"/><path d="M12 21.2c-3 0-5.2-1.9-5.2-4.4 0-2.1 1.8-3.7 3.6-5 .8-.6 1.3-1.4 1.6-2.2.3.8.8 1.6 1.6 2.2 1.8 1.3 3.6 2.9 3.6 5 0 2.5-2.2 4.4-5.2 4.4z"/></svg></div>
+            <div class="cat-body">
+                <p class="cat-name">Pets</p>
+                <span class="count" data-count-for="Pets">—</span>
+            </div>
+            <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+
         <div class="category" data-cat="Construção" onclick="filterCategory('Construção', this)">
-            <div class="icon-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 15.5a8.5 8.5 0 0 1 17 0"/><line x1="2" y1="15.5" x2="22" y2="15.5"/><line x1="12" y1="4" x2="12" y2="7.2"/></svg></div><p>Construção</p><span class="count" data-count-for="Construção">—</span>
+            <div class="cat-icon" style="--icon-bg:#E8EAF6;--icon-color:#3949AB;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 15.5a8.5 8.5 0 0 1 17 0"/><line x1="2" y1="15.5" x2="22" y2="15.5"/><line x1="12" y1="4" x2="12" y2="7.2"/></svg></div>
+            <div class="cat-body">
+                <p class="cat-name">Construção</p>
+                <span class="count" data-count-for="Construção">—</span>
+            </div>
+            <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+
         <div class="category" data-cat="Academia" onclick="filterCategory('Academia', this)">
-            <div class="icon-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6.5" y1="12" x2="17.5" y2="12"/><rect x="3" y="8.8" width="3.3" height="6.4" rx="1"/><rect x="17.7" y="8.8" width="3.3" height="6.4" rx="1"/><line x1="1.5" y1="10.2" x2="1.5" y2="13.8"/><line x1="22.5" y1="10.2" x2="22.5" y2="13.8"/></svg></div><p>Academia</p><span class="count" data-count-for="Academia">—</span>
+            <div class="cat-icon" style="--icon-bg:#E8F5E9;--icon-color:#388E3C;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6.5" y1="12" x2="17.5" y2="12"/><rect x="3" y="8.8" width="3.3" height="6.4" rx="1"/><rect x="17.7" y="8.8" width="3.3" height="6.4" rx="1"/><line x1="1.5" y1="10.2" x2="1.5" y2="13.8"/><line x1="22.5" y1="10.2" x2="22.5" y2="13.8"/></svg></div>
+            <div class="cat-body">
+                <p class="cat-name">Academia</p>
+                <span class="count" data-count-for="Academia">—</span>
+            </div>
+            <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
     </div>
 
-    <div class="section-title" style="margin-top:clamp(28px,5vw,40px);">
-        <h2>Onde você procura?</h2>
-        <span class="eyebrow">FILTRAR POR REGIÃO</span>
+    <div class="section-title" style="margin-top:clamp(36px,6vw,52px);">
+        <div>
+            <span class="eyebrow">Localização</span>
+            <h2>Onde você procura?</h2>
+        </div>
+        <span class="eyebrow" style="color:var(--muted);">FILTRAR POR REGIÃO</span>
     </div>
 
     <div class="location-filter">
@@ -754,10 +1636,13 @@ footer .fine{
         </select>
     </div>
 
-    <div class="section-title" style="margin-top:clamp(36px,7vw,52px);">
-        <h2>Profissionais disponíveis</h2>
+    <div class="section-title" style="margin-top:clamp(36px,6vw,52px);">
+        <div>
+            <span class="eyebrow">Resultados</span>
+            <h2>Profissionais disponíveis</h2>
+        </div>
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            <span class="eyebrow" id="resultsLabel">CARREGANDO...</span>
+            <span class="eyebrow" id="resultsLabel" style="color:var(--muted);">CARREGANDO...</span>
             <div class="view-toggle">
                 <button class="active" id="btnViewList" onclick="switchView('list')">Lista</button>
                 <button id="btnViewMap" onclick="switchView('map')">Mapa</button>
@@ -773,23 +1658,162 @@ footer .fine{
         <div id="leafletMap"></div>
     </div>
 
-    <section class="cta">
-        <h2>🚨 Precisa de um profissional?</h2>
-        <p>Conte o que você precisa. Profissionais disponíveis perto de você recebem seu pedido na hora.</p>
-        <button onclick="openModal('urgent')">Preciso agora</button>
-    </section>
-
 </div>
 
 
+<!-- COMO FUNCIONA -->
+<section class="how-it-works" id="como-funciona">
+    <div class="hiw-inner">
+        <div class="hiw-left">
+            <span class="eyebrow">Como funciona</span>
+            <h2>É simples e rápido!</h2>
+            <p>Em poucos passos você encontra o serviço ou profissional ideal, bem perto de você.</p>
+            <button class="btn-green" onclick="openModal('register')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9"/><path d="M3 9h18"/><path d="M9 22V12h6v10"/></svg>
+                Quero anunciar
+            </button>
+        </div>
+
+        <div class="hiw-steps">
+            <div class="hiw-step">
+                <div class="step-num">1</div>
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </div>
+                <h4>Pesquise</h4>
+                <p>Digite o que precisa e sua localização.</p>
+                <svg class="hiw-step-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+            </div>
+
+            <div class="hiw-step">
+                <div class="step-num">2</div>
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+                </div>
+                <h4>Escolha</h4>
+                <p>Veja as melhores opções, compare e leia as avaliações.</p>
+                <svg class="hiw-step-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+            </div>
+
+            <div class="hiw-step">
+                <div class="step-num">3</div>
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                </div>
+                <h4>Entre em contato</h4>
+                <p>Fale direto com o profissional ou empresa.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- POR QUE ESCOLHER -->
+<section class="why-section container" id="sobre">
+    <div class="why-head">
+        <span class="eyebrow">Por que escolher o ACHOU+</span>
+        <h2>Vantagens para você</h2>
+    </div>
+
+    <div class="why-grid">
+        <div class="why-card">
+            <div class="why-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <h4>Mais praticidade</h4>
+            <p>Tudo o que você precisa em um só lugar.</p>
+        </div>
+
+        <div class="why-card">
+            <div class="why-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h4>Mais segurança</h4>
+            <p>Empresas e profissionais verificados.</p>
+        </div>
+
+        <div class="why-card">
+            <div class="why-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <h4>Mais perto de você</h4>
+            <p>Serviços na sua região, com atendimento local.</p>
+        </div>
+
+        <div class="why-card">
+            <div class="why-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <h4>Mais avaliações</h4>
+            <p>Escolha com confiança através de opiniões reais.</p>
+        </div>
+    </div>
+
+
+    <!-- CTA (BANNER VERDE) com foto real do rapaz atrás -->
+    <section class="cta">
+        <div class="cta-text">
+            <h2>Precisa de um serviço?<br>A gente te ajuda a encontrar!</h2>
+            <p>Conte o que você precisa. Profissionais disponíveis perto de você recebem seu pedido na hora.</p>
+            <button onclick="openModal('urgent')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Buscar agora
+            </button>
+            <div class="cta-features">
+                <span>Rápido</span>
+                <span>Seguro</span>
+                <span>Confiável</span>
+                <span>Com avaliações</span>
+            </div>
+        </div>
+
+        <div class="cta-visual" aria-hidden="true">
+            <!-- FOTO REAL: rapaz com telefone (atrás do mini-mockup) -->
+            <img class="cta-photo"
+                 src="https://images.pexels.com/photos/37727528/pexels-photo-37727528.jpeg?auto=compress&cs=tinysrgb&w=800"
+                 alt="Homem usando smartphone ao ar livre"
+                 loading="lazy">
+
+            <div class="cta-phone">
+                <div class="cta-phone-screen">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <strong>Encontre agora</strong>
+                    <em>Profissionais perto de você</em>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</section>
+
+
 <footer>
-    <strong>ACHOU+</strong>
-    <p style="margin-top:10px;">Precisou? Achou.</p>
-    <p style="margin-top:14px;">
-        <a href="termos-de-uso.html" style="color:rgba(250,250,248,.75);font-size:13px;margin:0 10px;text-decoration:none;">Termos de Uso</a>
-        <a href="politica-privacidade.html" style="color:rgba(250,250,248,.75);font-size:13px;margin:0 10px;text-decoration:none;">Política de Privacidade</a>
-    </p>
-    <p class="fine">© 2026 ACHOU+ — Todos os direitos reservados. Brasil.</p>
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <span class="logo-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </span>
+            <div>
+                <span class="logo-brand">ACHOU<span>+</span></span>
+                <small>Serviços perto de você</small>
+            </div>
+        </div>
+
+        <nav class="footer-links" aria-label="Links do rodapé">
+            <a href="termos-de-uso.html">Termos de uso</a>
+            <a href="politica-privacidade.html">Privacidade</a>
+            <a href="#top">Fale conosco</a>
+        </nav>
+
+        <div class="footer-social" aria-label="Redes sociais">
+            <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+            <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+            <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"/><polygon points="10 9 15 12 10 15 10 9" fill="currentColor" stroke="none"/></svg></a>
+            <a href="#" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>
+        </div>
+    </div>
+
+    <p class="footer-fine">© 2026 ACHOU+ — Todos os direitos reservados. Brasil.</p>
 </footer>
 
 
@@ -1139,6 +2163,24 @@ function renderResults(list){
 
 /* ---------- MAPA (Leaflet + OpenStreetMap) ---------- */
 
+/* ---------- MENU MOBILE ---------- */
+
+function toggleMobileMenu(){
+    const menu = document.getElementById('headerRight');
+    const btn = document.getElementById('menuToggle');
+    const abrir = !menu.classList.contains('open');
+    menu.classList.toggle('open', abrir);
+    btn.classList.toggle('open', abrir);
+    btn.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+}
+
+function closeMobileMenu(){
+    document.getElementById('headerRight').classList.remove('open');
+    const btn = document.getElementById('menuToggle');
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+}
+
 function switchView(view){
     document.getElementById('btnViewList').classList.toggle('active', view === 'list');
     document.getElementById('btnViewMap').classList.toggle('active', view === 'map');
@@ -1354,6 +2396,7 @@ function enviarAvaliacao(empresaId){
 }
 
 function openModal(type){
+    closeMobileMenu();
     document.getElementById('modalBody').innerHTML = document.getElementById('tpl-' + type).innerHTML;
     document.getElementById('modalOverlay').classList.add('open');
     if(type === 'register'){
@@ -1586,6 +2629,7 @@ auth.onAuthStateChanged(async user => {
 
 async function abrirPlano(){
     if(!currentUser) return;
+    closeMobileMenu();
 
     showModal('<h3>Meu plano</h3><p class="modal-sub">Carregando...</p>');
 
