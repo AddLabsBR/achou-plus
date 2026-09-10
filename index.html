@@ -1252,6 +1252,77 @@ body{overflow-x:hidden}
   .fine{grid-column:1/-1;text-align:center!important}
 }
 </style>
+
+<style id="achou-v5-text-alignment">
+/* ACHOU+ V5 — ajuste fino de alinhamento e imagem no celular */
+.hero-copy h1,
+.hero-copy > p,
+.hero-search,
+.trust-row{margin-left:0;margin-right:auto;}
+.hero-copy > p{max-width:520px;}
+.section-title h2,
+.advantages-heading h2,
+.how-intro h2{word-break:normal;overflow-wrap:normal;}
+.category p{white-space:normal;word-break:normal;overflow-wrap:anywhere;}
+.category .count{white-space:normal;}
+.step-premium h3,.step-premium p,.advantages-grid h3,.advantages-grid p{overflow-wrap:normal;word-break:normal;}
+.cta-main h2 span{display:inline;}
+.cta-photo{background-repeat:no-repeat;background-color:#073f31;}
+
+@media(max-width:850px){
+  /* Mantém a mesma leitura visual do desktop, sem juntar os textos */
+  .hero-inner{align-items:stretch!important;text-align:left!important;}
+  .hero-copy{align-items:flex-start!important;text-align:left!important;}
+  .hero-copy .location-pill{align-self:flex-start;}
+  .hero-copy h1{width:100%;text-align:left!important;line-height:.90!important;}
+  .hero-copy > p{width:100%;max-width:560px!important;text-align:left!important;line-height:1.48!important;margin:0 0 20px!important;}
+  .hero-search{align-self:stretch;max-width:none!important;}
+  .trust-row{justify-content:flex-start!important;text-align:left!important;}
+
+  /* Títulos e subtítulos nunca ficam espremidos uns sobre os outros */
+  .section-title{width:100%;align-items:flex-end!important;flex-direction:row!important;justify-content:space-between!important;gap:14px!important;}
+  .section-title h2{min-width:0;flex:1;}
+  .section-title .eyebrow{flex:0 0 auto;max-width:48%;text-align:right;}
+  .section-title > div{width:auto!important;min-width:0;}
+
+  .category{min-width:0!important;}
+  .category p{line-height:1.25!important;}
+  .how-intro{text-align:left!important;}
+  .how-intro p{margin-left:0!important;margin-right:0!important;}
+  .steps-premium{align-items:stretch;}
+  .step-premium{text-align:center;}
+  .step-premium h3{line-height:1.2!important;white-space:normal!important;}
+  .advantages-heading{text-align:left!important;}
+  .advantages-grid article{text-align:left!important;}
+
+  /* No celular, o lado direito do banner sempre mostra o rapaz */
+  .cta-premium{position:relative;overflow:hidden;}
+  .cta-photo{
+    display:block!important;
+    min-height:135px!important;
+    width:100%!important;
+    background-size:auto 100%!important;
+    background-position:right center!important;
+    background-repeat:no-repeat!important;
+    border-radius:12px!important;
+  }
+}
+
+@media(max-width:520px){
+  .hero-copy h1{font-size:clamp(49px,15.5vw,68px)!important;}
+  .hero-copy > p{font-size:14px!important;}
+  .section-title{gap:9px!important;}
+  .section-title h2{font-size:23px!important;}
+  .section-title .eyebrow{font-size:8px!important;letter-spacing:.035em!important;}
+  .category{padding:13px 11px!important;}
+  .category .icon-ring{width:44px!important;height:44px!important;}
+  .category p{font-size:11px!important;}
+  .how-premium{padding:27px 16px!important;}
+  .how-intro h2,.advantages-heading h2{font-size:24px!important;}
+  .cta-photo{min-height:125px!important;}
+}
+</style>
+
 </head>
 
 <body>
