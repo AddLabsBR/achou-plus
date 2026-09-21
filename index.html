@@ -141,7 +141,7 @@ html{scroll-padding-top:96px}
 /* FOOTER — deep emerald with a Liquid Glass panel */
 footer{position:relative;isolation:isolate;overflow:hidden;margin-top:clamp(50px,8vw,84px);padding:clamp(28px,4vw,44px) 16px 26px;color:#EAF4F0;background:linear-gradient(180deg,#0C3B34 0%,#0A2F31 58%,#0C2830 100%)}
 footer::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(36% 70% at 10% 0%,rgba(74,222,155,.22),transparent 72%),radial-gradient(34% 60% at 94% 100%,rgba(18,160,92,.24),transparent 72%)}
-.footer-glass{position:relative;max-width:1180px;margin:0 auto;padding:clamp(24px,3vw,34px) clamp(20px,3.4vw,40px);border-radius:28px;background:linear-gradient(135deg,rgba(255,255,255,.11),rgba(255,255,255,.04));-webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);box-shadow:0 30px 60px -34px rgba(0,0,0,.6)}
+.footer-glass{position:relative;max-width:1180px;margin:0 auto;padding:clamp(24px,3vw,34px) clamp(20px,3.4vw,40px) 20px;border-radius:28px;background:linear-gradient(135deg,rgba(255,255,255,.11),rgba(255,255,255,.04));-webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);box-shadow:0 30px 60px -34px rgba(0,0,0,.6)}
 .footer-glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;background:linear-gradient(140deg,rgba(255,255,255,.42),rgba(255,255,255,.06) 40%,rgba(255,255,255,.04) 60%,rgba(255,255,255,.28));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
 .f-top{display:flex;align-items:center;justify-content:space-between;gap:22px 32px;flex-wrap:wrap}
 .f-brand strong{display:block;font-size:26px;font-weight:800;color:#fff;line-height:1.1}
@@ -150,6 +150,7 @@ footer::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:no
 .f-links{display:flex;gap:6px 26px;flex-wrap:wrap}
 .f-links a{color:rgba(234,244,240,.8);font-size:14px;text-decoration:none;transition:color .2s}
 .f-links a:hover{color:#fff}
+.f-fine{margin:24px 0 0;padding-top:18px;border-top:1px solid rgba(255,255,255,.09);text-align:center;font-size:12.5px;color:rgba(234,244,240,.66)}
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(15,42,51,.62);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:1200;padding:18px}
@@ -588,6 +589,7 @@ footer a:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
                 <a href="politica-privacidade.html">Política de Privacidade</a>
             </nav>
         </div>
+        <p class="f-fine">© Todos os direitos reservados · Brasil 2026</p>
     </div>
 </footer>
 
