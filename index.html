@@ -361,6 +361,12 @@ footer::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:no
   .search-ticket button{padding:12px 18px;font-size:14.5px}
 }
 
+/* Paginação */
+.load-more-wrap{grid-column:1/-1;display:flex;justify-content:center;padding:8px 0 2px}
+.load-more{border:1px solid rgba(15,42,51,.10);background:linear-gradient(180deg,#fff,#F3FAF6);color:var(--green-d);padding:12px 28px;border-radius:999px;font-weight:700;font-size:14.5px;box-shadow:0 12px 24px -18px rgba(15,42,51,.5),inset 0 1px 0 #fff;transition:.2s}
+.load-more:hover{transform:translateY(-1px);border-color:rgba(18,160,92,.4)}
+.load-more:disabled{opacity:.6;cursor:default;transform:none}
+
 /* Quality floor: focus, reduced motion, no-blur fallback */
 #siteHeader a:focus-visible,#siteHeader button:focus-visible,.hero a:focus-visible,.hero button:focus-visible,.cta button:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 footer a:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
@@ -852,22 +858,31 @@ function requestLocation(){
     );
 }
 
-/* ---------- CARREGAR EMPRESAS EM TEMPO REAL ---------- */
+/* ---------- CARREGAR EMPRESAS (por páginas, filtrando no Firestore) ----------
+   Antes: cada visitante baixava TODAS as empresas e ficava conectado em tempo real.
+   Agora: 20 por vez, com categoria / estado / município aplicados na própria consulta.
+   Só a busca por texto, o mapa e "ordenar por distância" precisam da lista completa;
+   ela é baixada uma vez (no máximo FULL_CAP) e fica em cache por alguns minutos. */
 
-db.collection('empresas')
-  .where('status', '==', 'aprovado')
-  .onSnapshot(
-    snapshot => {
-        allEmpresas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        atualizarContadoresCategorias();
-        applyFilters();
-    },
-    error => {
-        console.error('Erro ao carregar empresas:', error);
-        document.getElementById('results').innerHTML =
-            '<div class="no-results">NÃO FOI POSSÍVEL CARREGAR AS EMPRESAS. VERIFIQUE A CONFIGURAÇÃO DO FIREBASE.</div>';
-    }
-  );
+const PAGE_SIZE = 20;
+const FULL_CAP = 500;
+const CACHE_MS = 10 * 60 * 1000;
+
+let exibidas = [];            // modo por páginas: empresas já mostradas
+let ultimoDoc = null;         // cursor da paginação
+let temMaisFirestore = false;
+let carregando = false;
+let modoCompleto = false;     // true = busca por texto, mapa ou distância
+let listaFiltrada = [];       // modo completo: resultado já filtrado/ordenado
+let mostrarAte = PAGE_SIZE;
+let listaTruncada = false;
+let termoAplicado = '';
+let filtroVersao = 0;         // descarta respostas antigas quando o filtro muda
+const cacheListas = {};
+let fase = 'destaque';       // paginação: primeiro 'destaque', depois 'normal'
+
+applyFilters();
+atualizarContadoresCategorias();
 
 function businessCardHTML(empresa){
     const badge = empresa.destaque
@@ -897,70 +912,250 @@ function businessCardHTML(empresa){
     `;
 }
 
-function atualizarContadoresCategorias(){
-    const contagem = {};
-    allEmpresas.forEach(e => {
-        contagem[e.categoria] = (contagem[e.categoria] || 0) + 1;
-    });
-    document.querySelectorAll('[data-count-for]').forEach(el => {
-        const cat = el.dataset.countFor;
-        const n = contagem[cat] || 0;
-        el.textContent = n === 0 ? 'nenhuma ainda' : (n + (n === 1 ? ' empresa' : ' empresas'));
-    });
+/* Contadores das categorias: uma consulta de contagem por categoria (1 leitura cada),
+   em vez de baixar todas as empresas. Guardados na sessão por 10 minutos. */
+function contarCategoria(cat){
+    const url = 'https://firestore.googleapis.com/v1/projects/' + firebaseConfig.projectId +
+                '/databases/(default)/documents:runAggregationQuery?key=' + firebaseConfig.apiKey;
+    const filtro = (campo, valor) => ({ fieldFilter: { field: { fieldPath: campo }, op: 'EQUAL', value: { stringValue: valor } } });
+    const corpo = { structuredAggregationQuery: {
+        structuredQuery: {
+            from: [{ collectionId: 'empresas' }],
+            where: { compositeFilter: { op: 'AND', filters: [ filtro('status', 'aprovado'), filtro('categoria', cat) ] } }
+        },
+        aggregations: [{ alias: 'n', count: {} }]
+    } };
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) })
+        .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(j => {
+            const v = j && j[0] && j[0].result && j[0].result.aggregateFields && j[0].result.aggregateFields.n;
+            return v ? parseInt(v.integerValue || 0, 10) : 0;
+        });
 }
 
-function applyFilters(){
-    const input = document.getElementById('searchInput').value.toLowerCase().trim();
-    const filtroEstado = document.getElementById('filterEstado') ? document.getElementById('filterEstado').value : '';
-    const filtroMunicipio = document.getElementById('filterMunicipio') ? document.getElementById('filterMunicipio').value : '';
+async function atualizarContadoresCategorias(){
+    const els = Array.from(document.querySelectorAll('[data-count-for]'));
+    const texto = n => n === 0 ? 'nenhuma ainda' : (n + (n === 1 ? ' empresa' : ' empresas'));
+    let cache = null;
+    try{ cache = JSON.parse(sessionStorage.getItem('achou_contagem') || 'null'); }catch(e){}
+    if(cache && Date.now() - cache.t < CACHE_MS){
+        els.forEach(el => { const n = cache.dados[el.dataset.countFor]; if(typeof n === 'number') el.textContent = texto(n); });
+        return;
+    }
+    const dados = {};
+    await Promise.all(els.map(async el => {
+        try{
+            const n = await contarCategoria(el.dataset.countFor);
+            dados[el.dataset.countFor] = n;
+            el.textContent = texto(n);
+        }catch(e){ /* sem número: o cartão continua funcionando */ }
+    }));
+    try{ if(Object.keys(dados).length) sessionStorage.setItem('achou_contagem', JSON.stringify({ t: Date.now(), dados })); }catch(e){}
+}
 
-    let list = allEmpresas.map(e => {
+/* ---------- FILTROS ---------- */
+
+function norm(s){
+    return (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
+function valorFiltro(id){
+    const el = document.getElementById(id);
+    return el ? el.value : '';
+}
+
+function chaveFiltros(){
+    return [activeCategory || '', valorFiltro('filterEstado'), valorFiltro('filterMunicipio')].join('|');
+}
+
+function montarQuery(){
+    let q = db.collection('empresas').where('status', '==', 'aprovado');
+    if(activeCategory) q = q.where('categoria', '==', activeCategory);
+    const uf = valorFiltro('filterEstado');
+    const cidade = valorFiltro('filterMunicipio');
+    if(uf) q = q.where('estado', '==', uf);
+    if(cidade) q = q.where('cidade', '==', cidade);
+    return q;
+}
+
+function mapaAtivo(){
+    const m = document.getElementById('mapView');
+    return !!(m && m.classList.contains('active'));
+}
+
+function listaCompletaEmCache(){
+    const c = cacheListas[chaveFiltros()];
+    return (c && Date.now() - c.t < CACHE_MS) ? c : null;
+}
+
+function mostrarCarregando(){
+    document.getElementById('results').innerHTML = '<div class="no-results" id="loadingState">CARREGANDO EMPRESAS...</div>';
+}
+
+function mostrarErro(err){
+    console.error('Erro ao carregar empresas:', err);
+    document.getElementById('resultsLabel').textContent = 'ERRO AO CARREGAR';
+    document.getElementById('results').innerHTML =
+        '<div class="no-results">NÃO FOI POSSÍVEL CARREGAR AS EMPRESAS AGORA.<br><br>' +
+        '<button type="button" class="load-more" onclick="applyFilters()">Tentar novamente</button></div>';
+}
+
+/* Ponto de entrada: recomeça a listagem com os filtros atuais */
+function applyFilters(){
+    const versao = ++filtroVersao;
+    termoAplicado = norm(valorFiltro('searchInput'));
+    modoCompleto = termoAplicado !== '' || userLat !== null || mapaAtivo();
+    if(modoCompleto){
+        mostrarAte = PAGE_SIZE;
+        carregarCompleta(versao);
+    }else{
+        carregarPagina(true, versao);
+    }
+}
+
+/* Modo normal: 20 empresas por vez, filtradas no Firestore.
+   Ordem: primeiro as empresas com Plano Destaque, depois as demais. */
+/* Busca até `quantidade` empresas sem destaque (as com destaque já saíram na primeira fase).
+   Não usa o filtro destaque == false de propósito: empresas antigas sem esse campo continuam aparecendo. */
+async function buscarNormais(quantidade){
+    const itens = [];
+    let cursor = ultimoDoc;
+    let temMais = false;
+    const lote = Math.max(quantidade, PAGE_SIZE) + 1;   // lote grande o bastante para pular os destaques de uma vez
+    for(let volta = 0; volta < 60; volta++){
+        let q = montarQuery();
+        if(cursor) q = q.startAfter(cursor);
+        const snap = await q.limit(lote).get();
+        const docs = snap.docs;
+        for(const d of docs){
+            const dados = d.data();
+            if(dados.destaque === true){ cursor = d; continue; }
+            if(itens.length >= quantidade){ temMais = true; break; }
+            itens.push({ id: d.id, ...dados });
+            cursor = d;
+        }
+        if(temMais || docs.length < lote) break;
+    }
+    return { itens, temMais, cursor };
+}
+
+async function carregarPagina(reset, versao){
+    if(reset){
+        ultimoDoc = null; fase = 'destaque'; exibidas = []; allEmpresas = []; temMaisFirestore = false;
+        mostrarCarregando();
+    }else if(carregando){
+        return;
+    }
+    carregando = true;
+    try{
+        let novas = [];
+        if(fase === 'destaque'){
+            let q = montarQuery().where('destaque', '==', true);
+            if(ultimoDoc) q = q.startAfter(ultimoDoc);
+            const snap = await q.limit(PAGE_SIZE + 1).get();   // +1 só para saber se há mais
+            if(versao !== filtroVersao) return;
+            const docs = snap.docs;
+            if(docs.length > PAGE_SIZE){
+                const pagina = docs.slice(0, PAGE_SIZE);
+                ultimoDoc = pagina[pagina.length - 1];
+                novas = pagina.map(d => ({ id: d.id, ...d.data() }));
+                temMaisFirestore = true;
+            }else{
+                novas = docs.map(d => ({ id: d.id, ...d.data() }));
+                fase = 'normal';
+                ultimoDoc = null;
+            }
+        }
+        if(fase === 'normal'){
+            const r = await buscarNormais(PAGE_SIZE - novas.length);
+            if(versao !== filtroVersao) return;
+            novas = novas.concat(r.itens);
+            ultimoDoc = r.cursor;
+            temMaisFirestore = r.temMais;
+        }
+        exibidas = exibidas.concat(novas);
+        allEmpresas = exibidas;
+        desenhar();
+    }catch(err){
+        if(versao !== filtroVersao) return;
+        if(reset) mostrarErro(err); else { console.error(err); desenhar(); }
+    }finally{
+        if(versao === filtroVersao) carregando = false;
+    }
+}
+
+/* Modo completo (texto, mapa ou distância): baixa uma vez e filtra no navegador */
+async function carregarCompleta(versao){
+    const chave = chaveFiltros();
+    let c = listaCompletaEmCache();
+    try{
+        if(!c){
+            mostrarCarregando();
+            const snap = await montarQuery().limit(FULL_CAP).get();
+            if(versao !== filtroVersao) return;
+            c = { t: Date.now(), lista: snap.docs.map(d => ({ id: d.id, ...d.data() })), truncada: snap.size >= FULL_CAP };
+            cacheListas[chave] = c;
+        }
+        if(versao !== filtroVersao) return;
+        allEmpresas = c.lista;
+        listaTruncada = c.truncada;
+        prepararListaFiltrada();
+        desenhar();
+    }catch(err){
+        if(versao === filtroVersao) mostrarErro(err);
+    }
+}
+
+function prepararListaFiltrada(){
+    let lista = allEmpresas.map(e => {
         if(userLat !== null && typeof e.lat === 'number' && typeof e.lng === 'number'){
             e._distancia = calcularDistanciaKm(userLat, userLng, e.lat, e.lng);
-        } else {
+        }else{
             delete e._distancia;
         }
         return e;
     });
-
-    if(activeCategory){
-        list = list.filter(e => e.categoria === activeCategory);
-    }
-    if(filtroEstado){
-        list = list.filter(e => e.estado === filtroEstado);
-    }
-    if(filtroMunicipio){
-        list = list.filter(e => e.cidade === filtroMunicipio);
-    }
-    if(input){
-        list = list.filter(e =>
-            (e.nome || '').toLowerCase().includes(input) ||
-            (e.categoria || '').toLowerCase().includes(input) ||
-            (e.descricao || '').toLowerCase().includes(input)
+    if(termoAplicado){
+        lista = lista.filter(e =>
+            norm(e.nome).includes(termoAplicado) ||
+            norm(e.categoria).includes(termoAplicado) ||
+            norm(e.descricao).includes(termoAplicado)
         );
     }
-
     if(userLat !== null){
-        list = list.slice().sort((a, b) => {
+        lista = lista.slice().sort((a, b) => {
             const da = typeof a._distancia === 'number' ? a._distancia : Infinity;
             const db = typeof b._distancia === 'number' ? b._distancia : Infinity;
             return da - db;
         });
     }
-
-    renderResults(list);
-    updateMapMarkers(list);
+    // Plano Destaque primeiro (ordenação estável: dentro de cada grupo continua valendo a distância)
+    lista = lista.slice().sort((a, b) => (b.destaque === true) - (a.destaque === true));
+    listaFiltrada = lista;
 }
 
-function renderResults(list){
+function desenhar(){
     const results = document.getElementById('results');
+    const itens = modoCompleto ? listaFiltrada.slice(0, mostrarAte) : exibidas;
+    const mais = modoCompleto ? listaFiltrada.length > mostrarAte : temMaisFirestore;
+    const n = modoCompleto ? listaFiltrada.length : exibidas.length;
+    const maisTxt = (!modoCompleto && mais) ? '+' : '';
     document.getElementById('resultsLabel').textContent =
-        list.length + (list.length === 1 ? ' DISPONÍVEL' : ' DISPONÍVEIS') + ' · ATUALIZADO AGORA';
-    if(list.length === 0){
+        n + maisTxt + (n === 1 && !maisTxt ? ' DISPONÍVEL' : ' DISPONÍVEIS') +
+        (modoCompleto && listaTruncada ? ' · PRIMEIRAS ' + FULL_CAP : '');
+    if(itens.length === 0){
         results.innerHTML = '<div class="no-results">NENHUM PROFISSIONAL ENCONTRADO NESSA BUSCA.</div>';
-        return;
+    }else{
+        results.innerHTML = itens.map(businessCardHTML).join('') +
+            (mais ? '<div class="load-more-wrap"><button type="button" class="load-more" onclick="verMais(this)">Ver mais</button></div>' : '');
     }
-    results.innerHTML = list.map(businessCardHTML).join('');
+    updateMapMarkers(modoCompleto ? listaFiltrada : exibidas);
+}
+
+function verMais(btn){
+    if(btn){ btn.disabled = true; btn.textContent = 'Carregando...'; }
+    if(modoCompleto){ mostrarAte += PAGE_SIZE; desenhar(); }
+    else carregarPagina(false, filtroVersao);
 }
 
 /* ---------- MAPA (Leaflet + OpenStreetMap) ---------- */
@@ -991,6 +1186,7 @@ function switchView(view){
     if(view === 'map'){
         if(!leafletMap) initMap();
         setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, 50); // corrige o tamanho ao exibir
+        applyFilters(); // o mapa mostra todas as empresas do filtro, não só a primeira página
     }
 }
 
@@ -1040,9 +1236,15 @@ function updateMapMarkers(list){
 function searchBusiness(e){
     const input = document.getElementById('searchInput');
     const enviar = !e || e.type === 'click' || e.key === 'Enter' || e.keyCode === 13;
-    const escreveu = input && input.value.trim() !== '';
+    const termo = norm(input ? input.value : '');
+    if(!enviar){
+        // digitando: só filtra ao vivo quando não gera novas leituras no banco
+        if(termo === termoAplicado) return;
+        const apagou = termo === '' && termoAplicado !== '';
+        if(!apagou && (activeCategory || !listaCompletaEmCache())) return;
+    }
     // a busca do topo procura em todas as categorias (não fica presa a um filtro anterior)
-    if(activeCategory && (escreveu || enviar)){
+    if(activeCategory && (termo !== '' || enviar)){
         activeCategory = null;
         document.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
     }
