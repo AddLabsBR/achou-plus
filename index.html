@@ -1148,7 +1148,7 @@ function businessCardHTML(empresa){
     const localTxt = [empresa.cidade, empresa.estado].filter(Boolean).join(' - ');
     const distanciaTxt = (typeof empresa._distancia === 'number')
         ? `${empresa._distancia.toFixed(1)} KM DE VOCÊ`
-        : (localTxt || 'Local não informado');
+        : (esc(localTxt) || 'Local não informado');
     return `
         <div class="business" data-id="${empresa.id}">
             <div class="business-cover">
@@ -1156,9 +1156,9 @@ function businessCardHTML(empresa){
                 <span class="rating-tag">⭐ ${nota}</span>
             </div>
             <div class="business-content">
-                <h3>${empresa.nome}</h3>
+                <h3>${esc(empresa.nome)}</h3>
                 <div class="location-text">📍 ${distanciaTxt}</div>
-                <p class="desc">${empresa.descricao || ''}</p>
+                <p class="desc">${esc(empresa.descricao)}</p>
                 <div class="actions">
                     <button class="profile-btn" onclick="viewProfile('${empresa.id}')">Ver perfil</button>
                     <button class="whatsapp-btn" onclick="whatsapp('${empresa.id}')">WhatsApp</button>
@@ -1211,6 +1211,10 @@ async function atualizarContadoresCategorias(){
 
 /* ---------- FILTROS ---------- */
 
+function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 function norm(s){
     return (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 }
@@ -1239,8 +1243,24 @@ function mapaAtivo(){
     return !!(m && m.classList.contains('active'));
 }
 
+function lerListaLocal(chave){
+    try{
+        const c = JSON.parse(localStorage.getItem('zoons_lista_' + chave) || 'null');
+        return (c && Date.now() - c.t < CACHE_MS) ? c : null;
+    }catch(e){ return null; }
+}
+
+function gravarListaLocal(chave, c){
+    try{ localStorage.setItem('zoons_lista_' + chave, JSON.stringify(c)); }catch(e){ /* sem espaço: segue sem cache local */ }
+}
+
 function listaCompletaEmCache(){
-    const c = cacheListas[chaveFiltros()];
+    const chave = chaveFiltros();
+    let c = cacheListas[chave];
+    if(!(c && Date.now() - c.t < CACHE_MS)){
+        c = lerListaLocal(chave);
+        if(c) cacheListas[chave] = c;
+    }
     return (c && Date.now() - c.t < CACHE_MS) ? c : null;
 }
 
@@ -1351,6 +1371,7 @@ async function carregarCompleta(versao){
             if(versao !== filtroVersao) return;
             c = { t: Date.now(), lista: snap.docs.map(d => ({ id: d.id, ...d.data() })), truncada: snap.size >= FULL_CAP };
             cacheListas[chave] = c;
+            gravarListaLocal(chave, c);
         }
         if(versao !== filtroVersao) return;
         allEmpresas = c.lista;
@@ -1480,9 +1501,9 @@ function updateMapMarkers(list){
         const marker = L.marker([empresa.lat, empresa.lng]).addTo(leafletMap);
         marker.bindPopup(`
             <div class="map-popup">
-                <h4>${empresa.nome}</h4>
-                <p>${empresa.categoria}${typeof empresa._distancia === 'number' ? ' · ' + empresa._distancia.toFixed(1) + ' km' : ''}</p>
-                <a href="https://wa.me/${empresa.whatsapp}" target="_blank">Chamar no WhatsApp →</a>
+                <h4>${esc(empresa.nome)}</h4>
+                <p>${esc(empresa.categoria)}${typeof empresa._distancia === 'number' ? ' · ' + empresa._distancia.toFixed(1) + ' km' : ''}</p>
+                <a href="https://wa.me/${String(empresa.whatsapp || '').replace(/\D/g, '')}" target="_blank">Chamar no WhatsApp →</a>
             </div>
         `);
         mapMarkers.push(marker);
@@ -1543,12 +1564,12 @@ function viewProfile(empresaId){
     const localTxt = [empresa.cidade, empresa.estado].filter(Boolean).join(' - ');
 
     showModal(`
-        <h3>${empresa.nome}</h3>
-        <p class="modal-sub">${empresa.categoria}${localTxt ? ' · ' + localTxt : ''}${distanciaTxt ? ' · ' + distanciaTxt : ''}</p>
+        <h3>${esc(empresa.nome)}</h3>
+        <p class="modal-sub">${esc(empresa.categoria)}${localTxt ? ' · ' + esc(localTxt) : ''}${distanciaTxt ? ' · ' + distanciaTxt : ''}</p>
         <p style="font-size:14px;color:#4A4E55;line-height:1.5;">
-            ${empresa.descricao || ''}
+            ${esc(empresa.descricao)}
         </p>
-        ${empresa.endereco ? `<p style="font-size:12.5px;color:var(--muted);margin-top:10px;">📍 ${empresa.endereco}</p>` : ''}
+        ${empresa.endereco ? `<p style="font-size:12.5px;color:var(--muted);margin-top:10px;">📍 ${esc(empresa.endereco)}</p>` : ''}
 
         <div style="margin-top:20px;border-top:1px solid var(--line);padding-top:16px;">
             <p class="eyebrow" style="margin-bottom:10px;">
