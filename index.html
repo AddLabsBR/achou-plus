@@ -1554,11 +1554,13 @@ function whatsapp(empresaId){
 }
 
 let avaliandoEstrelas = 0;
+let avaliacaoExistente = false;
 
 function viewProfile(empresaId){
     const empresa = allEmpresas.find(e => e.id === empresaId);
     if(!empresa) return;
     avaliandoEstrelas = 0;
+    avaliacaoExistente = false;
 
     const distanciaTxt = typeof empresa._distancia === 'number' ? `${empresa._distancia.toFixed(1)} km de você` : '';
     const localTxt = [empresa.cidade, empresa.estado].filter(Boolean).join(' - ');
@@ -1577,20 +1579,42 @@ function viewProfile(empresaId){
             </p>
             <div id="avaliacoesList" style="max-height:180px;overflow-y:auto;">Carregando...</div>
 
-            <div style="margin-top:16px;">
-                <p class="eyebrow" style="margin-bottom:8px;">DEIXE SUA AVALIAÇÃO</p>
+            <div id="avalForm" style="margin-top:16px;">
+                <p id="avalTitulo" class="eyebrow" style="margin-bottom:8px;">DEIXE SUA AVALIAÇÃO</p>
                 <div class="star-input" id="starInput">
                     ${[1,2,3,4,5].map(n => `<span class="star" data-n="${n}" onclick="setStar(${n})">☆</span>`).join('')}
                 </div>
                 <input id="avalNome" type="text" placeholder="Seu nome" required style="width:100%;margin-top:10px;padding:10px 12px;border-radius:8px;border:1.5px solid var(--line-strong);font-size:13.5px;background:var(--paper);color:var(--ink);outline:none;font-family:inherit;">
                 <textarea id="avalComentario" placeholder="Como foi o atendimento?" style="width:100%;margin-top:10px;padding:10px 12px;border-radius:8px;border:1.5px solid var(--line-strong);font-size:13.5px;min-height:60px;background:var(--paper);color:var(--ink);outline:none;font-family:inherit;"></textarea>
-                <button class="modal-submit" style="margin-top:10px;" onclick="enviarAvaliacao('${empresa.id}')">Enviar avaliação</button>
+                <button id="avalBtn" class="modal-submit" style="margin-top:10px;" onclick="enviarAvaliacao('${empresa.id}')">Enviar avaliação</button>
                 <p id="avalError" style="color:var(--urgent);font-size:12.5px;margin-top:8px;display:none;"></p>
             </div>
         </div>
     `);
 
     carregarAvaliacoes(empresa.id);
+    preencherMinhaAvaliacao(empresa);
+}
+
+// Dono não avalia a própria empresa; quem já avaliou edita a sua (1 por pessoa)
+function preencherMinhaAvaliacao(empresa){
+    if(!currentUser) return;
+    if(empresa.uid && currentUser.uid === empresa.uid){
+        const box = document.getElementById('avalForm');
+        if(box) box.innerHTML = '<p style="font-size:12.5px;color:var(--muted);">Você não pode avaliar a própria empresa.</p>';
+        return;
+    }
+    db.collection('avaliacoes').doc(`${empresa.id}_${currentUser.uid}`).get().then(doc => {
+        const btn = document.getElementById('avalBtn');
+        if(!doc.exists || !btn) return; // sem avaliação anterior, ou modal já fechado
+        const a = doc.data();
+        avaliacaoExistente = true;
+        btn.textContent = 'Atualizar avaliação';
+        document.getElementById('avalTitulo').textContent = 'SUA AVALIAÇÃO · VOCÊ PODE EDITAR';
+        document.getElementById('avalNome').value = a.nome_avaliador || '';
+        document.getElementById('avalComentario').value = a.comentario || '';
+        setStar(a.nota || 0);
+    }).catch(() => {});
 }
 
 function setStar(n){
@@ -1621,8 +1645,8 @@ function carregarAvaliacoes(empresaId){
               const data = a.criado_em && a.criado_em.toDate ? a.criado_em.toDate().toLocaleDateString('pt-BR') : '';
               return `
                   <div class="review-item">
-                      <span class="review-stars">${estrelas}</span> ${a.nome_avaliador ? `<strong style="font-size:12.5px;">${a.nome_avaliador}</strong>` : '<span style="font-size:12.5px;color:var(--muted);">Anônimo</span>'}
-                      ${a.comentario ? `<div class="review-comment">${a.comentario}</div>` : ''}
+                      <span class="review-stars">${estrelas}</span> ${a.nome_avaliador ? `<strong style="font-size:12.5px;">${esc(a.nome_avaliador)}</strong>` : '<span style="font-size:12.5px;color:var(--muted);">Anônimo</span>'}
+                      ${a.comentario ? `<div class="review-comment">${esc(a.comentario)}</div>` : ''}
                       <div class="review-date">${data}</div>
                   </div>
               `;
@@ -1654,6 +1678,13 @@ function enviarAvaliacao(empresaId){
         return;
     }
 
+    const empresaAlvo = allEmpresas.find(e => e.id === empresaId);
+    if(currentUser && empresaAlvo && empresaAlvo.uid === currentUser.uid){
+        erroEl.textContent = 'Você não pode avaliar a própria empresa.';
+        erroEl.style.display = 'block';
+        return;
+    }
+
     // Garante uma identidade estável (a conta logada, ou uma sessão anônima
     // criada na hora) para permitir só 1 avaliação por pessoa por empresa,
     // sem exigir cadastro.
@@ -1672,7 +1703,7 @@ function enviarAvaliacao(empresaId){
             criado_em: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then(() => {
-            showSuccess('Avaliação enviada!', 'Obrigado por ajudar outras pessoas a encontrar bons profissionais.');
+            showSuccess(avaliacaoExistente ? 'Avaliação atualizada!' : 'Avaliação enviada!', 'Obrigado por ajudar outras pessoas a encontrar bons profissionais.');
             fetch(`${NETLIFY_FUNCTIONS_BASE}/recalcular-avaliacoes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
