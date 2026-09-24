@@ -591,6 +591,25 @@ footer a:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 .geo-ic::after{display:none}
 .geo-tx strong{font-size:12.5px;font-weight:600;letter-spacing:.005em}
 .geo-tx small,.geo-chev{display:none}
+/* Estilos que faltavam nos modais (avaliação, plano, sucesso, erros) */
+:root{--urgent:#D64545;--line-strong:#CBD9D2;--paper:#fff;--accent-dark:var(--green-d)}
+.modal h3{margin:0 0 6px;font-size:22px}
+.modal-sub{color:var(--muted);font-size:14px;margin:0 0 16px}
+.modal-submit{display:block;width:100%;background:var(--green);color:#fff;border:0;border-radius:999px;padding:14px;font-weight:700;font-size:15px;font-family:inherit;cursor:pointer;transition:.2s}
+.modal-submit:hover{background:var(--green-d)}
+.modal-success{text-align:center;padding:14px 0}
+.modal-success .check{width:56px;height:56px;border-radius:50%;background:#EAF8F0;color:var(--green);display:grid;place-items:center;font-size:26px;font-weight:800;margin:0 auto 14px}
+.modal-success p{color:var(--muted);font-size:14.5px;margin:0}
+.review-stars{color:#F5B301;letter-spacing:1px;margin-right:6px}
+.review-comment{margin-top:4px;color:var(--ink)}
+.review-date{margin-top:2px;font-size:12px;color:var(--muted)}
+.star{transition:transform .15s}
+.star:hover{transform:scale(1.12)}
+.btn-locate{width:100%;padding:12px;border:1.5px dashed var(--green);background:#F1FAF5;color:var(--green-d);border-radius:13px;font-weight:700;font-size:13px;margin-bottom:14px;cursor:pointer;font-family:inherit}
+.btn-locate.captured{border-style:solid;background:#EAF8F0}
+.map-popup h4{margin:0 0 4px}
+.map-popup p{margin:0 0 6px;font-size:12.5px}
+.map-popup a{color:var(--green-d);font-weight:700}
 </style>
 </head>
 
