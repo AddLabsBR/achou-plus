@@ -30,7 +30,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 <style>
 :root{
   --green:#12A05C; --green-d:#0C7F48; --mint:#4ADE9B; --dark:#0F2A33;
@@ -908,7 +908,7 @@ function quickCat(c){var el=document.querySelector('.category[data-cat="'+c+'"]'
     <h3>Criar conta</h3>
     <p class="modal-sub">Só o necessário para deixar avaliações na Zoons. Se você tem uma empresa, use "Cadastrar empresa" em vez disso.</p>
     <form id="criarContaForm" onsubmit="return handleCriarConta(event)">
-        <div class="field"><label>Nome</label><input id="ccNome" type="text" required></div>
+        <div class="field"><label>Nome</label><input id="ccNome" type="text" maxlength="100" required></div>
         <div class="field"><label>E-mail</label><input id="ccEmail" type="email" required></div>
         <div class="field"><label>Senha</label><input id="ccSenha" type="password" minlength="6" required></div>
         <p id="criarContaError" style="color:var(--urgent);font-size:12.5px;margin-bottom:10px;display:none;"></p>
@@ -923,7 +923,7 @@ function quickCat(c){var el=document.querySelector('.category[data-cat="'+c+'"]'
     <h3>Cadastrar empresa</h3>
     <p class="modal-sub">Apareça para quem está procurando o seu serviço agora. Sua empresa entra em análise antes de aparecer nas buscas.</p>
     <form id="registerForm" onsubmit="return handleRegister(event)">
-        <div class="field"><label>Nome da empresa</label><input id="regNome" type="text" required></div>
+        <div class="field"><label>Nome da empresa</label><input id="regNome" type="text" maxlength="120" required></div>
         <div class="field">
             <label>Categoria</label>
             <select id="regCategoria" required>
@@ -936,7 +936,7 @@ function quickCat(c){var el=document.querySelector('.category[data-cat="'+c+'"]'
             </select>
         </div>
         <div class="field"><label>WhatsApp (com DDD)</label><input id="regWhatsapp" type="tel" placeholder="41999990000" required></div>
-        <div class="field"><label>Descrição curta</label><input id="regDescricao" type="text" placeholder="Ex: conserto de celulares e desbloqueio" required></div>
+        <div class="field"><label>Descrição curta</label><input id="regDescricao" type="text" maxlength="300" placeholder="Ex: conserto de celulares e desbloqueio" required></div>
         <div class="field">
             <label>Estado</label>
             <select id="regEstado" required onchange="preencherMunicipios(this.value, document.getElementById('regMunicipio'), 'Selecione o estado primeiro')">
@@ -949,7 +949,7 @@ function quickCat(c){var el=document.querySelector('.category[data-cat="'+c+'"]'
                 <option value="">Selecione o estado primeiro</option>
             </select>
         </div>
-        <div class="field"><label>Endereço (aparece no perfil)</label><input id="regEndereco" type="text" placeholder="Rua, número, bairro"></div>
+        <div class="field"><label>Endereço (aparece no perfil)</label><input id="regEndereco" type="text" maxlength="200" placeholder="Rua, número, bairro"></div>
         <button type="button" class="btn-locate" id="btnLocate" onclick="capturarLocalizacaoEmpresa()">📍 Capturar localização do negócio</button>
         <p id="locateError" style="color:var(--urgent);font-size:12.5px;margin:-8px 0 12px;display:none;"></p>
         <div class="field"><label>E-mail (login da conta)</label><input id="regEmail" type="email" required></div>
@@ -991,6 +991,13 @@ const firebaseConfig = {
     messagingSenderId: "62686159238",
     appId: "1:62686159238:web:f9e75ec6d57aa5d2578c07"
 };
+if(typeof firebase === 'undefined'){
+    document.addEventListener('DOMContentLoaded', () => {
+        const r = document.getElementById('results');
+        if(r) r.innerHTML = '<div class="no-results">NÃO FOI POSSÍVEL CARREGAR AS EMPRESAS. VERIFIQUE SUA CONEXÃO E RECARREGUE A PÁGINA.</div>';
+    });
+    throw new Error('Firebase SDK não carregou');
+}
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -1503,7 +1510,7 @@ function updateMapMarkers(list){
             <div class="map-popup">
                 <h4>${esc(empresa.nome)}</h4>
                 <p>${esc(empresa.categoria)}${typeof empresa._distancia === 'number' ? ' · ' + empresa._distancia.toFixed(1) + ' km' : ''}</p>
-                <a href="https://wa.me/${String(empresa.whatsapp || '').replace(/\D/g, '')}" target="_blank">Chamar no WhatsApp →</a>
+                <a href="https://wa.me/${String(empresa.whatsapp || '').replace(/\D/g, '')}" target="_blank" rel="noopener noreferrer">Chamar no WhatsApp →</a>
             </div>
         `);
         mapMarkers.push(marker);
@@ -1550,7 +1557,9 @@ function whatsapp(empresaId){
     const empresa = allEmpresas.find(e => e.id === empresaId);
     if(!empresa) return;
     const msg = encodeURIComponent(`Olá! Vi seu anúncio na Zoons e preciso de ajuda com um serviço.`);
-    window.open(`https://wa.me/${empresa.whatsapp}?text=${msg}`, '_blank');
+    const numero = String(empresa.whatsapp || '').replace(/\D/g, '');
+    if(!numero) return;
+    window.open(`https://wa.me/${numero}?text=${msg}`, '_blank', 'noopener,noreferrer');
 }
 
 let avaliandoEstrelas = 0;
@@ -1803,8 +1812,10 @@ function handleCriarConta(e){
     const erroEl = document.getElementById('criarContaError');
     erroEl.style.display = 'none';
 
+    let credCriada = null;
     auth.createUserWithEmailAndPassword(email, senha)
         .then(cred => {
+            credCriada = cred;
             return db.collection('usuarios').doc(cred.user.uid).set({
                 nome, email, tipo: 'cliente',
                 criado_em: firebase.firestore.FieldValue.serverTimestamp()
@@ -1814,6 +1825,7 @@ function handleCriarConta(e){
             showSuccess('Conta criada!', 'Agora você já pode deixar avaliações nas empresas da Zoons.');
         })
         .catch(err => {
+            if(credCriada) credCriada.user.delete().catch(() => {}); // sem conta órfã: dá pra tentar de novo
             erroEl.textContent = traduzErroFirebase(err);
             erroEl.style.display = 'block';
         });
@@ -1849,11 +1861,19 @@ function handleRegister(e){
         return false;
     }
 
+    if(whatsapp.length < 10 || whatsapp.length > 13){
+        erroEl.textContent = 'Informe o WhatsApp com DDD, só números (ex.: 41999990000).';
+        erroEl.style.display = 'block';
+        return false;
+    }
+
     const estadoObj = estadosCache.find(uf => uf.sigla === estado);
     const estadoNome = estadoObj ? estadoObj.nome : estado;
 
+    let credCriada = null;
     auth.createUserWithEmailAndPassword(email, senha)
         .then(cred => {
+            credCriada = cred;
             const uid = cred.user.uid;
             const batch = db.batch();
 
@@ -1888,6 +1908,7 @@ function handleRegister(e){
             showSuccess('Cadastro recebido!', 'Sua empresa entrou na fila de análise. Assim que for aprovada, aparece nas buscas da Zoons.');
         })
         .catch(err => {
+            if(credCriada) credCriada.user.delete().catch(() => {}); // sem conta órfã: dá pra tentar de novo
             erroEl.textContent = traduzErroFirebase(err);
             erroEl.style.display = 'block';
         });
@@ -2003,7 +2024,7 @@ async function assinarPlano(){
         window.location.href = data.init_point;
     } catch(err){
         console.error(err);
-        showModal(`<h3>Não foi possível assinar</h3><p class="modal-sub">${err.message || 'Tente novamente em instantes.'}</p>`);
+        showModal(`<h3>Não foi possível assinar</h3><p class="modal-sub">${esc(err.message || 'Tente novamente em instantes.')}</p>`);
     }
 }
 
@@ -2016,7 +2037,7 @@ function traduzErroFirebase(err){
         'auth/user-not-found': 'Não existe conta com esse e-mail.',
         'auth/invalid-credential': 'E-mail ou senha incorretos.'
     };
-    return map[err.code] || 'Ocorreu um erro. Tente novamente. (' + (err.code || err.message) + ')';
+    return map[err.code] || 'Ocorreu um erro. Tente novamente. (' + esc(err.code || err.message) + ')';
 }
 
 document.addEventListener('keydown', (e) => {
