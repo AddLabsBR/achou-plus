@@ -610,6 +610,32 @@ footer a:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 .map-popup h4{margin:0 0 4px}
 .map-popup p{margin:0 0 6px;font-size:12.5px}
 .map-popup a{color:var(--green-d);font-weight:700}
+/* Botão "Entrar" com muñequito entrando pela porta — cores Zoons */
+.login-door-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;overflow:hidden}
+.login-door-btn .login-btn-label{flex:1;text-align:left}
+.login-btn-scene{position:relative;width:52px;height:32px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:flex-end;gap:3px}
+.walk-person{position:relative;z-index:1;width:17px;height:30px;flex-shrink:0;overflow:visible}
+.walk-person circle,.walk-person line{fill:none;stroke:#fff;stroke-width:2.1;stroke-linecap:round}
+.walk-person .p-head{fill:#fff;stroke:none}
+.p-leg-l,.p-leg-r{transform-origin:10px 21px}
+.p-arm-l,.p-arm-r{transform-origin:10px 12px}
+.walk-doorframe{position:relative;width:20px;height:30px;flex-shrink:0;border:2px solid rgba(255,255,255,.95);border-radius:3px 9px 9px 3px;border-left-width:3px;overflow:hidden;background:rgba(0,0,0,.18)}
+.walk-door{position:absolute;inset:0;transform-origin:left center;transform:scaleX(1)}
+.walk-door-panel{position:absolute;inset:0;background:linear-gradient(90deg,#fff,#EAF8F0 55%,#BFE3D0);box-shadow:inset -3px 0 0 rgba(15,42,51,.18),inset 0 0 0 1px rgba(15,42,51,.06)}
+.walk-door-panel::before{content:'';position:absolute;inset:4px 3px;border:1px solid rgba(15,42,51,.12);border-radius:1px}
+.walk-door-knob{position:absolute;right:3px;top:50%;width:2.4px;height:2.4px;margin-top:-1.2px;border-radius:50%;background:var(--green-d)}
+.login-door-btn.entering{pointer-events:none;opacity:.96}
+.login-door-btn.entering .walk-door{animation:doorSwing 1.5s ease-in-out 1}
+.login-door-btn.entering .walk-person{animation:personWalkThrough 1.5s ease-in-out 1 forwards}
+.login-door-btn.entering .p-leg-l{animation:stepA .26s ease-in-out 3;animation-delay:.32s}
+.login-door-btn.entering .p-leg-r{animation:stepB .26s ease-in-out 3;animation-delay:.32s}
+.login-door-btn.entering .p-arm-l{animation:stepB .26s ease-in-out 3;animation-delay:.32s}
+.login-door-btn.entering .p-arm-r{animation:stepA .26s ease-in-out 3;animation-delay:.32s}
+@keyframes stepA{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(20deg)}}
+@keyframes stepB{0%,100%{transform:rotate(20deg)}50%{transform:rotate(-20deg)}}
+@keyframes doorSwing{0%,20%{transform:scaleX(1)}46%,78%{transform:scaleX(.14)}96%,100%{transform:scaleX(1)}}
+@keyframes personWalkThrough{0%,20%{transform:translateX(0) scale(1);opacity:1}75%{transform:translateX(17px) scale(.92);opacity:1}88%{transform:translateX(21px) scale(.55);opacity:.7}100%{transform:translateX(23px) scale(.25);opacity:0}}
+@media(prefers-reduced-motion:reduce){.login-door-btn.entering .walk-door,.login-door-btn.entering .walk-person,.login-door-btn.entering .p-leg-l,.login-door-btn.entering .p-leg-r,.login-door-btn.entering .p-arm-l,.login-door-btn.entering .p-arm-r{animation:none}}
 </style>
 </head>
 
@@ -916,7 +942,25 @@ function quickCat(c){var el=document.querySelector('.category[data-cat="'+c+'"]'
         <div class="field"><label>E-mail</label><input id="loginEmail" type="email" required></div>
         <div class="field"><label>Senha</label><input id="loginSenha" type="password" required></div>
         <p id="loginError" style="color:var(--urgent);font-size:12.5px;margin-bottom:10px;display:none;"></p>
-        <button class="modal-submit" type="submit">Entrar</button>
+        <button class="modal-submit login-door-btn" id="loginDoorBtn" type="submit">
+            <span class="login-btn-label">Entrar</span>
+            <span class="login-btn-scene" aria-hidden="true">
+                <svg class="walk-person" viewBox="0 0 20 34">
+                    <circle class="p-head" cx="10" cy="5" r="3.6"/>
+                    <line class="p-body" x1="10" y1="8.6" x2="10" y2="21"/>
+                    <line class="p-arm p-arm-l" x1="10" y1="12" x2="5.2" y2="19"/>
+                    <line class="p-arm p-arm-r" x1="10" y1="12" x2="14.8" y2="19"/>
+                    <line class="p-leg p-leg-l" x1="10" y1="21" x2="6" y2="32.5"/>
+                    <line class="p-leg p-leg-r" x1="10" y1="21" x2="14" y2="32.5"/>
+                </svg>
+                <span class="walk-doorframe">
+                    <span class="walk-door">
+                        <span class="walk-door-panel"></span>
+                        <span class="walk-door-knob"></span>
+                    </span>
+                </span>
+            </span>
+        </button>
     </form>
     <p style="font-size:12.5px;color:var(--muted);margin-top:14px;text-align:center;">
         Não tem conta? <a href="#" onclick="openModal('criar-conta');return false;" style="color:var(--accent-dark);font-weight:700;">Criar conta para avaliar</a>
@@ -1809,13 +1853,16 @@ function handleLogin(e){
     const email = document.getElementById('loginEmail').value.trim();
     const senha = document.getElementById('loginSenha').value;
     const erroEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginDoorBtn');
     erroEl.style.display = 'none';
+    if(btn) btn.classList.add('entering');
 
     auth.signInWithEmailAndPassword(email, senha)
         .then(() => {
             showSuccess('Bem-vindo de volta!', 'Login feito com sucesso.');
         })
         .catch(err => {
+            if(btn) btn.classList.remove('entering');
             erroEl.textContent = traduzErroFirebase(err);
             erroEl.style.display = 'block';
         });
