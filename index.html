@@ -2110,14 +2110,35 @@ async function abrirPlano(){
             <p style="font-size:13.5px;color:#4A4E55;">Assim que o Mercado Pago confirmar o primeiro pagamento, o selo de destaque é ativado automaticamente.</p>
         `;
     } else {
+        const { preco, restantes } = await consultarPrecoDestaque();
+        const precoTxt = preco.toFixed(2).replace('.', ',');
+        const selo = restantes > 0
+            ? `<p style="font-size:12px;font-weight:800;color:var(--green-d);letter-spacing:.03em;text-transform:uppercase;margin-bottom:8px;">⭐ Restam ${restantes} vaga${restantes === 1 ? '' : 's'} de fundador</p>`
+            : '';
         statusHTML = `
             <p class="modal-sub">Plano atual: <strong>Grátis</strong></p>
-            <p style="font-size:13.5px;color:#4A4E55;margin-bottom:18px;">Assine o Plano Destaque e apareça com selo ⭐ e prioridade nas buscas por R$ 49,90/mês.</p>
+            ${selo}
+            <p style="font-size:13.5px;color:#4A4E55;margin-bottom:18px;">Assine o Plano Destaque e apareça com selo ⭐ e prioridade nas buscas por R$ ${precoTxt}/mês${restantes > 0 ? ', travado para sempre' : ''}.</p>
             <button class="modal-submit" onclick="assinarPlano()">Assinar Plano Destaque</button>
         `;
     }
 
     showModal(`<h3>Meu plano</h3>${statusHTML}`);
+}
+
+// Lê o contador público de vagas de fundador e devolve o preço e vagas restantes
+// que o cadastro dessa empresa realmente vai ver ao assinar.
+const LIMITE_FUNDADORES_UI = 15, PRECO_FUNDADOR_UI = 29.90, PRECO_PADRAO_UI = 49.90;
+async function consultarPrecoDestaque(){
+    try {
+        const doc = await db.collection('contadores').doc('fundadores').get();
+        const total = doc.exists ? (doc.data().total || 0) : 0;
+        const restantes = Math.max(LIMITE_FUNDADORES_UI - total, 0);
+        return { preco: restantes > 0 ? PRECO_FUNDADOR_UI : PRECO_PADRAO_UI, restantes };
+    } catch(err){
+        console.error('Não foi possível consultar vagas de fundador:', err);
+        return { preco: PRECO_PADRAO_UI, restantes: 0 }; // por segurança, mostra o preço cheio se a leitura falhar
+    }
 }
 
 async function assinarPlano(){
