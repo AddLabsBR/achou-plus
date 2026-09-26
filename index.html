@@ -636,6 +636,20 @@ footer a:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 @keyframes doorSwing{0%,20%{transform:scaleX(1)}46%,78%{transform:scaleX(.14)}96%,100%{transform:scaleX(1)}}
 @keyframes personWalkThrough{0%,20%{transform:translateX(0) scale(1);opacity:1}75%{transform:translateX(17px) scale(.92);opacity:1}88%{transform:translateX(21px) scale(.55);opacity:.7}100%{transform:translateX(23px) scale(.25);opacity:0}}
 @media(prefers-reduced-motion:reduce){.login-door-btn.entering .walk-door,.login-door-btn.entering .walk-person,.login-door-btn.entering .p-leg-l,.login-door-btn.entering .p-leg-r,.login-door-btn.entering .p-arm-l,.login-door-btn.entering .p-arm-r{animation:none}}
+/* Botão "Enviar cadastro" — avião de papel que dispara ao enviar (estilo Telegram) */
+.send-btn{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;overflow:hidden}
+.send-btn .login-btn-label{flex:1;text-align:left;transition:opacity .25s ease .05s}
+.send-icon{position:relative;width:22px;height:22px;flex-shrink:0;display:grid;place-items:center;color:#fff}
+.send-icon svg{width:20px;height:20px;transform:rotate(0deg);transition:transform .2s ease}
+.send-btn.sending{pointer-events:none;opacity:.97}
+.send-btn.sending .login-btn-label{opacity:0}
+.send-btn.sending .send-icon svg{animation:planeFly .85s cubic-bezier(.4,0,.2,1) 1 forwards}
+@keyframes planeFly{
+    0%{transform:translate(0,0) rotate(0deg) scale(1);opacity:1}
+    18%{transform:translate(2px,-1px) rotate(-8deg) scale(1.05);opacity:1}
+    100%{transform:translate(70px,-46px) rotate(28deg) scale(.35);opacity:0}
+}
+@media(prefers-reduced-motion:reduce){.send-btn.sending .send-icon svg{animation:none;opacity:0}}
 </style>
 </head>
 
@@ -975,7 +989,25 @@ function quickCat(c){var el=document.querySelector('.category[data-cat="'+c+'"]'
         <div class="field"><label>E-mail</label><input id="ccEmail" type="email" required></div>
         <div class="field"><label>Senha</label><input id="ccSenha" type="password" minlength="6" required></div>
         <p id="criarContaError" style="color:var(--urgent);font-size:12.5px;margin-bottom:10px;display:none;"></p>
-        <button class="modal-submit" type="submit">Criar conta</button>
+        <button class="modal-submit login-door-btn" id="criarContaDoorBtn" type="submit">
+            <span class="login-btn-label">Criar conta</span>
+            <span class="login-btn-scene" aria-hidden="true">
+                <svg class="walk-person" viewBox="0 0 20 34">
+                    <circle class="p-head" cx="10" cy="5" r="3.6"/>
+                    <line class="p-body" x1="10" y1="8.6" x2="10" y2="21"/>
+                    <line class="p-arm p-arm-l" x1="10" y1="12" x2="5.2" y2="19"/>
+                    <line class="p-arm p-arm-r" x1="10" y1="12" x2="14.8" y2="19"/>
+                    <line class="p-leg p-leg-l" x1="10" y1="21" x2="6" y2="32.5"/>
+                    <line class="p-leg p-leg-r" x1="10" y1="21" x2="14" y2="32.5"/>
+                </svg>
+                <span class="walk-doorframe">
+                    <span class="walk-door">
+                        <span class="walk-door-panel"></span>
+                        <span class="walk-door-knob"></span>
+                    </span>
+                </span>
+            </span>
+        </button>
     </form>
     <p style="font-size:12.5px;color:var(--muted);margin-top:14px;text-align:center;">
         Já tem conta? <a href="#" onclick="openModal('login');return false;" style="color:var(--accent-dark);font-weight:700;">Entrar</a>
@@ -1025,7 +1057,12 @@ function quickCat(c){var el=document.querySelector('.category[data-cat="'+c+'"]'
             <a href="politica-privacidade.html" target="_blank" style="color:var(--accent-dark);font-weight:700;">Política de Privacidade</a>
             da Zoons.
         </p>
-        <button class="modal-submit" type="submit">Enviar cadastro</button>
+        <button class="modal-submit send-btn" id="registerSendBtn" type="submit">
+            <span class="login-btn-label">Enviar cadastro</span>
+            <span class="send-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/></svg>
+            </span>
+        </button>
     </form>
 </template>
 
@@ -1876,7 +1913,9 @@ function handleCriarConta(e){
     const email = document.getElementById('ccEmail').value.trim();
     const senha = document.getElementById('ccSenha').value;
     const erroEl = document.getElementById('criarContaError');
+    const btn = document.getElementById('criarContaDoorBtn');
     erroEl.style.display = 'none';
+    if(btn) btn.classList.add('entering');
 
     let credCriada = null;
     auth.createUserWithEmailAndPassword(email, senha)
@@ -1892,6 +1931,7 @@ function handleCriarConta(e){
         })
         .catch(err => {
             if(credCriada) credCriada.user.delete().catch(() => {}); // sem conta órfã: dá pra tentar de novo
+            if(btn) btn.classList.remove('entering');
             erroEl.textContent = traduzErroFirebase(err);
             erroEl.style.display = 'block';
         });
@@ -1913,6 +1953,7 @@ function handleRegister(e){
     const email = document.getElementById('regEmail').value.trim();
     const senha = document.getElementById('regSenha').value;
     const erroEl = document.getElementById('registerError');
+    const btn = document.getElementById('registerSendBtn');
     erroEl.style.display = 'none';
 
     if(!estado || !cidade){
@@ -1935,6 +1976,7 @@ function handleRegister(e){
 
     const estadoObj = estadosCache.find(uf => uf.sigla === estado);
     const estadoNome = estadoObj ? estadoObj.nome : estado;
+    if(btn) btn.classList.add('sending');
 
     let credCriada = null;
     auth.createUserWithEmailAndPassword(email, senha)
@@ -1975,6 +2017,7 @@ function handleRegister(e){
         })
         .catch(err => {
             if(credCriada) credCriada.user.delete().catch(() => {}); // sem conta órfã: dá pra tentar de novo
+            if(btn) btn.classList.remove('sending');
             erroEl.textContent = traduzErroFirebase(err);
             erroEl.style.display = 'block';
         });
